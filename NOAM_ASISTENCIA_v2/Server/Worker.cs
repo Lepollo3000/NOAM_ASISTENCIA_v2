@@ -17,12 +17,12 @@ namespace NOAM_ASISTENCIA_v2.Server;
 public class Worker : IHostedService
 {
 	private readonly IServiceProvider _serviceProvider;
-	private readonly IConfiguration _httpContextAccessor;
+	private readonly IConfiguration _configuration;
 
-	public Worker(IServiceProvider serviceProvider, IConfiguration httpContextAccessor)
+	public Worker(IServiceProvider serviceProvider, IConfiguration configuration)
 	{
 		_serviceProvider = serviceProvider;
-		_httpContextAccessor = httpContextAccessor;
+		_configuration = configuration;
 	}
 
 	public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
@@ -37,7 +37,7 @@ public class Worker : IHostedService
 		var logger = scope.ServiceProvider.GetRequiredService<ILogger<Worker>>();
 
 		await InitializeDatabase(dbcontext, usermanager, rolemanager, logger);
-		await CreateAppDescriptor(scope, _httpContextAccessor.GetSection("AppBaseUrl"));
+		await CreateAppDescriptor(scope, _configuration.GetSection("AppBaseUrl"));
 	}
 
 	#region INITIALIZE_DB
