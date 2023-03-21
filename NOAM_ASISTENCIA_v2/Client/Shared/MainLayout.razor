@@ -1,18 +1,51 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavManager
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<Layout>
+    <Header Class="header">
+        <div class="logo"></div>
+        <Menu Theme="MenuTheme.Dark" Mode="MenuMode.Horizontal">
+            <Button Type="primary" OnClick="ToggleCollapsed" Style="margin-bottom: 16px">
+                @if (collapsed)
+                {
+                    <Icon Type="menu-unfold" Theme="outline"></Icon>
+                }
+                else
+                {
+                    <Icon Type="menu-fold" Theme="outline"></Icon>
+                }
+            </Button>
+        </Menu>
+    </Header>
 
-    <main>
-        <div class="top-row px-4 auth">
-            <LoginDisplay />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+    <Layout>
+        <Sider Theme="SiderTheme.Light" Class="site-layout-background">
+            <Menu Theme="MenuTheme.Light" Mode="MenuMode.Inline" InlineCollapsed=collapsed>
+                <MenuItem Icon="">
+                    <MenuLink Href="">Home</MenuLink>
+                </MenuItem>
 
-        <article class="content px-4">
+                <MenuItem Icon="">
+                    <MenuLink Href="counter">Counter</MenuLink>
+                </MenuItem>
+
+                <MenuItem Icon="">
+                    <MenuLink Href="fetchdata">Fetch Data</MenuLink>
+                </MenuItem>
+            </Menu>
+        </Sider>
+
+        <Content Class="site-layout-background m-0 p-4 min-vh-100">
             @Body
-        </article>
-    </main>
-</div>
+        </Content>
+    </Layout>
+</Layout>
+
+@code {
+    private bool collapsed = false;
+
+    private void ToggleCollapsed()
+    {
+        collapsed = !collapsed;
+    }
+}

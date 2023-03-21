@@ -30,4 +30,6 @@ builder.Services.AddOidcAuthentication(options =>
 	options.UserOptions.RoleClaim = "role";
 });
 
+builder.Services.AddAntDesign();
+
 await builder.Build().RunAsync();
