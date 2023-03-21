@@ -1,51 +1,52 @@
 ﻿@inherits LayoutComponentBase
-@inject NavigationManager NavManager
 
-<Layout>
-    <Header Class="header">
-        <div class="logo"></div>
-        <Menu Theme="MenuTheme.Dark" Mode="MenuMode.Horizontal">
-            <Button Type="primary" OnClick="ToggleCollapsed" Style="margin-bottom: 16px">
-                @if (collapsed)
-                {
-                    <Icon Type="menu-unfold" Theme="outline"></Icon>
-                }
-                else
-                {
-                    <Icon Type="menu-fold" Theme="outline"></Icon>
-                }
-            </Button>
-        </Menu>
-    </Header>
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
+    </MudAppBar>
 
-    <Layout>
-        <Sider Theme="SiderTheme.Light" Class="site-layout-background">
-            <Menu Theme="MenuTheme.Light" Mode="MenuMode.Inline" InlineCollapsed=collapsed>
-                <MenuItem Icon="">
-                    <MenuLink Href="">Home</MenuLink>
-                </MenuItem>
+    <MudDrawer @bind-Open="_drawerIsOpened" ClipMode="DrawerClipMode.Never" Elevation="1" Variant="@DrawerVariant.Responsive">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">NOAM Asistencia</MudText>
+        </MudDrawerHeader>
 
-                <MenuItem Icon="">
-                    <MenuLink Href="counter">Counter</MenuLink>
-                </MenuItem>
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="/counter" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+            <MudNavLink Href="/fetchdata" Icon="@Icons.Material.Filled.Storage">FetchData</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
 
-                <MenuItem Icon="">
-                    <MenuLink Href="fetchdata">Fetch Data</MenuLink>
-                </MenuItem>
-            </Menu>
-        </Sider>
-
-        <Content Class="site-layout-background m-0 p-4 min-vh-100">
+    <MudMainContent Class="pt-16 px-5">
+        <MudContainer Class="mt-6">
             @Body
-        </Content>
-    </Layout>
-</Layout>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+<MudThemeProvider Theme="new MudTheme()" />
 
 @code {
-    private bool collapsed = false;
+    private bool _drawerIsOpened = true;
+    private MudTheme _currentTheme = new MudTheme
+        {
+            Palette = new Palette()
+            {
+                Black = Colors.Shades.Black,
+                Background = Colors.Grey.Lighten3,
+                BackgroundGrey = Colors.Grey.Lighten1,
+                Surface = "#373740",
+                TextPrimary = Colors.Grey.Darken4,
+                TextSecondary = Colors.Grey.Darken3,
+                AppbarBackground = Colors.BlueGrey.Darken4,
+                AppbarText = Colors.Grey.Lighten5,
+                DrawerBackground = "#27272f",
+                DrawerText = "#ffffffb3",
+                DrawerIcon = "#ffffffb3"
+            }
+        };
 
-    private void ToggleCollapsed()
-    {
-        collapsed = !collapsed;
-    }
+    private void ToggleDrawer() => _drawerIsOpened = !_drawerIsOpened;
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using NOAM_ASISTENCIA_v2.Client;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -30,6 +31,6 @@ builder.Services.AddOidcAuthentication(options =>
 	options.UserOptions.RoleClaim = "role";
 });
 
-builder.Services.AddAntDesign();
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
