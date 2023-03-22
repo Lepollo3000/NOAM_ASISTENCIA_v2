@@ -6,12 +6,16 @@
 
 <AuthorizeView>
     <Authorized>
-        <a href="authentication/profile">Hello, @context.User.Identity?.Name!</a>
-        <button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
+        <MudNavLink OnClick="BeginSignOut" Icon="@Icons.Material.Filled.Logout">Cerrar Sesión</MudNavLink>
+        @*<a href="authentication/profile">Hello, @context.User.Identity?.Name!</a>
+        <button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>*@
     </Authorized>
+
     <NotAuthorized>
-        <a href="authentication/register">Register</a>
-        <a href="authentication/login">Log in</a>
+        <MudNavLink Href="authentication/register" Icon="@Icons.Material.Filled.PersonAddAlt1">Registrar</MudNavLink>
+        <MudNavLink Href="authentication/login" Icon="@Icons.Material.Filled.Login">Iniciar Sesión</MudNavLink>
+        @*<a href="authentication/register">Register</a>
+        <a href="authentication/login">Log in</a>*@
     </NotAuthorized>
 </AuthorizeView>
 

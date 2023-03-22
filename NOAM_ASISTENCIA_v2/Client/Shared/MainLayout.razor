@@ -1,32 +1,36 @@
 ﻿@inherits LayoutComponentBase
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="5">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
+
+        <MudNavGroup>
+            <LoginDisplay />
+        </MudNavGroup>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerIsOpened" ClipMode="DrawerClipMode.Never" Elevation="1" Variant="@DrawerVariant.Responsive">
+    <MudDrawer Elevation="5" @bind-Open="_drawerIsOpened" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Responsive">
         <MudDrawerHeader>
             <MudText Typo="Typo.h6">NOAM Asistencia</MudText>
         </MudDrawerHeader>
 
-        <MudNavMenu>
+        <MudNavMenu Color="Color.Info">
             <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
             <MudNavLink Href="/counter" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
             <MudNavLink Href="/fetchdata" Icon="@Icons.Material.Filled.Storage">FetchData</MudNavLink>
         </MudNavMenu>
     </MudDrawer>
 
-    <MudMainContent Class="pt-16 px-5">
-        <MudContainer Class="mt-6">
+    <MudMainContent>
+        <MudContainer Class="my-5 py-5">
             @Body
         </MudContainer>
     </MudMainContent>
 </MudLayout>
 
-<MudThemeProvider Theme="new MudTheme()" />
+<MudThemeProvider Theme="_currentTheme" />
 
 @code {
     private bool _drawerIsOpened = true;
@@ -37,14 +41,14 @@
                 Black = Colors.Shades.Black,
                 Background = Colors.Grey.Lighten3,
                 BackgroundGrey = Colors.Grey.Lighten1,
-                Surface = "#373740",
+                Surface = Colors.Lime.Darken3,
                 TextPrimary = Colors.Grey.Darken4,
                 TextSecondary = Colors.Grey.Darken3,
-                AppbarBackground = Colors.BlueGrey.Darken4,
+                AppbarBackground = Colors.BlueGrey.Darken3,
                 AppbarText = Colors.Grey.Lighten5,
-                DrawerBackground = "#27272f",
-                DrawerText = "#ffffffb3",
-                DrawerIcon = "#ffffffb3"
+                DrawerBackground = Colors.BlueGrey.Darken4,
+                DrawerText = Colors.Grey.Lighten5,
+                DrawerIcon = Colors.Grey.Lighten5
             }
         };
 
