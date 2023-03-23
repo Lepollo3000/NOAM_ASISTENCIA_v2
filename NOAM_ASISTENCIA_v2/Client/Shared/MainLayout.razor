@@ -3,12 +3,8 @@
 <MudLayout>
     <MudAppBar Elevation="5">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
-
         <MudSpacer />
-
-        <MudNavGroup>
-            <LoginDisplay />
-        </MudNavGroup>
+        <LoginDisplay />
     </MudAppBar>
 
     <MudDrawer Elevation="5" @bind-Open="_drawerIsOpened" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Responsive">

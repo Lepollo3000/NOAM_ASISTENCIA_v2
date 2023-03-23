@@ -6,20 +6,16 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudNavLink OnClick="BeginSignOut" Icon="@Icons.Material.Filled.Logout">Cerrar Sesión</MudNavLink>
-        @*<a href="authentication/profile">Hello, @context.User.Identity?.Name!</a>
-        <button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>*@
+        <MudButton OnClick="BeginSignOut" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Logout">Cerrar Sesión</MudButton>
     </Authorized>
 
     <NotAuthorized>
-        <MudNavLink Href="authentication/register" Icon="@Icons.Material.Filled.PersonAddAlt1">Registrar</MudNavLink>
-        <MudNavLink Href="authentication/login" Icon="@Icons.Material.Filled.Login">Iniciar Sesión</MudNavLink>
-        @*<a href="authentication/register">Register</a>
-        <a href="authentication/login">Log in</a>*@
+        <MudButton Href="authentication/register" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.PersonAddAlt1">Registrar</MudButton>
+        <MudButton Href="authentication/login" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login">Iniciar Sesión</MudButton>
     </NotAuthorized>
 </AuthorizeView>
 
-@code{
+@code {
     private async Task BeginSignOut(MouseEventArgs args)
     {
         await SignOutManager.SetSignOutState();
