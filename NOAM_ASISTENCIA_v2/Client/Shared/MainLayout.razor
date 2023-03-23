@@ -8,15 +8,7 @@
     </MudAppBar>
 
     <MudDrawer Elevation="5" @bind-Open="_drawerIsOpened" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Responsive">
-        <MudDrawerHeader>
-            <MudText Typo="Typo.h6">NOAM Asistencia</MudText>
-        </MudDrawerHeader>
-
-        <MudNavMenu Color="Color.Info">
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-            <MudNavLink Href="/counter" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-            <MudNavLink Href="/fetchdata" Icon="@Icons.Material.Filled.Storage">FetchData</MudNavLink>
-        </MudNavMenu>
+        <DrawerMenu />
     </MudDrawer>
 
     <MudMainContent>
@@ -37,14 +29,15 @@
                 Black = Colors.Shades.Black,
                 Background = Colors.Grey.Lighten3,
                 BackgroundGrey = Colors.Grey.Lighten1,
-                Surface = Colors.Lime.Darken3,
                 TextPrimary = Colors.Grey.Darken4,
                 TextSecondary = Colors.Grey.Darken3,
                 AppbarBackground = Colors.BlueGrey.Darken3,
                 AppbarText = Colors.Grey.Lighten5,
                 DrawerBackground = Colors.BlueGrey.Darken4,
                 DrawerText = Colors.Grey.Lighten5,
-                DrawerIcon = Colors.Grey.Lighten5
+                DrawerIcon = Colors.Grey.Lighten5,
+                Surface = Colors.BlueGrey.Lighten5,
+                TableLines = Colors.BlueGrey.Lighten4
             }
         };
 

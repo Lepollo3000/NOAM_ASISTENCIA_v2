@@ -81,7 +81,7 @@ builder.Services.AddHttpContextAccessor();
 
 // Register the worker responsible for seeding the database.
 // Note: in a real world application, this step should be part of a setup script.
-builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<InitDB>();
 
 var app = builder.Build();
 

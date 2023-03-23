@@ -1,0 +1,16 @@
+﻿
+<MudDrawerHeader>
+    <MudText Typo="Typo.h6">NOAM Asistencia</MudText>
+</MudDrawerHeader>
+
+<MudNavMenu Color="Color.Info">
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="fa fa-home">Home</MudNavLink>
+    <MudNavLink Href="counter" Icon="fa fa-plus">Counter</MudNavLink>
+    <MudNavLink Href="fetchdata" Icon="fa fa-th-list">FetchData</MudNavLink>
+
+    <AuthorizeView Roles="Administrador">
+        <MudNavGroup Title="Administrador" Icon="fa fa-user-tie" Expanded>
+            <MudNavLink Href="servicios" Icon="fa fa-store">Servicios</MudNavLink>
+        </MudNavGroup>
+    </AuthorizeView>
+</MudNavMenu>
