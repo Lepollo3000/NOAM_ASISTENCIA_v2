@@ -10,9 +10,11 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="descripcion" T="SucursalServicio">Name</MudTableSortLabel></MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Descripcion">@context.Descripcion</MudTd>
+        <MudTd><MudButton Href="@($"servicios/edit/{context.Id}")" Color="Color.Info" EndIcon="fa fa-edit">Editar</MudButton></MudTd>
     </RowTemplate>
     <NoRecordsContent>
         <MudText>No matching records found.</MudText>

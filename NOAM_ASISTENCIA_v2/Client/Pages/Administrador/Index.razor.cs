@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador
 {
-    partial class SucursalesServicio
+    partial class Index
     {
         [Inject] private HttpClient _client { get; set; } = null!;
 

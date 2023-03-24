@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
+@inject NavigationManager _navManager
+@inject IJSRuntime _jsRuntime
+
 <MudLayout>
     <MudAppBar Elevation="5">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
@@ -12,6 +15,8 @@
     </MudDrawer>
 
     <MudMainContent>
+        <MudBreadcrumbs Class="mx-5 px-5" Items="_breadcrumbItems" />
+
         <MudContainer Class="my-5 py-5">
             @Body
         </MudContainer>
@@ -22,6 +27,7 @@
 
 @code {
     private bool _drawerIsOpened = true;
+    private List<BreadcrumbItem> _breadcrumbItems = new List<BreadcrumbItem>() { new BreadcrumbItem("Home", href: "") };
     private MudTheme _currentTheme = new MudTheme
         {
             Palette = new Palette()
@@ -37,9 +43,30 @@
                 DrawerText = Colors.Grey.Lighten5,
                 DrawerIcon = Colors.Grey.Lighten5,
                 Surface = Colors.BlueGrey.Lighten5,
-                TableLines = Colors.BlueGrey.Lighten4
+                TableLines = Colors.BlueGrey.Lighten4,
+                HoverOpacity = 20
             }
         };
 
     private void ToggleDrawer() => _drawerIsOpened = !_drawerIsOpened;
+
+    protected override void OnParametersSet()
+    {
+        List<string> baseUri = _navManager.Uri.Replace(_navManager.BaseUri, "").Split("/").ToList();
+
+        baseUri.ForEach(async(uriComponent) => 
+        {
+            if (!string.IsNullOrEmpty(uriComponent))
+            {
+                //BreadcrumbItem lastItem = _breadcrumbItems.Last();
+                string hrefComponent = await GetTitle();
+
+                _breadcrumbItems.Add(new BreadcrumbItem(text: hrefComponent, href: $"/{uriComponent}"));
+            }
+        });
+
+        base.OnParametersSet();
+    }
+
+    protected async Task<string> GetTitle() => await _jsRuntime.InvokeAsync<string>("getTitle");
 }

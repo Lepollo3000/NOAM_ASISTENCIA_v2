@@ -1,0 +1,9 @@
+﻿@page "/servicios/edit/{ServicioId:int}"
+
+<h3>Edit</h3>
+
+@code {
+    [Parameter] public int ServicioId { get; set; }
+
+    private SucursalServicio model = null!;
+}
