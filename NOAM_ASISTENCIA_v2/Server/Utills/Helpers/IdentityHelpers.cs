@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-namespace NOAM_ASISTENCIA_v2.Server.Models.Utils
+namespace NOAM_ASISTENCIA_v2.Server.Utils
 {
     public static class IdentityHelpers
     {
@@ -17,7 +17,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Models.Utils
             if (context == null) throw new ArgumentNullException(nameof(context));
             var entityType = context.Model.FindEntityType(typeof(T));
             var value = enable ? "ON" : "OFF";
-            context.Database.ExecuteSqlRaw($"SET IDENTITY_INSERT {entityType.GetSchema()}.{entityType.GetTableName()} {value}");
+            context.Database.ExecuteSqlRaw($"SET IDENTITY_INSERT {entityType!.GetSchema()}.{entityType!.GetTableName()} {value}");
         }
 
         public static void SaveChangesWithIdentityInsert<T>([NotNull] this DbContext context)
@@ -42,7 +42,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Models.Utils
             if (context == null) throw new ArgumentNullException(nameof(context));
             var entityType = context.Model.FindEntityType(typeof(T));
             var value = enable ? "ON" : "OFF";
-            await context.Database.ExecuteSqlRawAsync($"SET IDENTITY_INSERT {entityType.GetSchema()}.{entityType.GetTableName()} {value}");
+            await context.Database.ExecuteSqlRawAsync($"SET IDENTITY_INSERT {entityType!.GetSchema()}.{entityType!.GetTableName()} {value}");
         }
 
         public static async Task SaveChangesWithIdentityInsertAsync<T>([NotNull] this DbContext context)

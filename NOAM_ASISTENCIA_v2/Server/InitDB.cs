@@ -1,9 +1,9 @@
 ﻿using NOAM_ASISTENCIA_v2.Server.Models;
+using NOAM_ASISTENCIA_v2.Server.Utils;
 using NOAM_ASISTENCIA_v2.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
-using NOAM_ASISTENCIA_v2.Server.Models.Utils;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace NOAM_ASISTENCIA_v2.Server;
