@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
+using NOAM_ASISTENCIA_v2.Client.Shared;
 using NOAM_ASISTENCIA_v2.Client.Utils.Features;
 using NOAM_ASISTENCIA_v2.Shared.Models;
 using NOAM_ASISTENCIA_v2.Shared.RequestFeatures;
@@ -10,6 +11,8 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador
 {
     partial class Index
     {
+        [CascadingParameter] public MainLayout Layout { get; set; } = null!;
+
         [Inject] private HttpClient _client { get; set; } = null!;
 
         private readonly JsonSerializerOptions _options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -17,6 +20,17 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador
 
         private ProductParameters _productParameters = new ProductParameters();
         private MudTable<SucursalServicio> table = new MudTable<SucursalServicio>();
+
+        protected override async Task OnInitializedAsync()
+        {
+            List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
+            {
+                new BreadcrumbItem("Home", href: ""),
+                new BreadcrumbItem("Servicios", href: "/servicios")
+            };
+
+            await Layout.SetBreadcrumb(breadcrumb);
+        }
 
         private async Task<TableData<SucursalServicio>> GetServerData(TableState state)
         {

@@ -15,7 +15,9 @@
     </MudDrawer>
 
     <MudMainContent>
-        <MudBreadcrumbs Class="mx-5 px-5" Items="_breadcrumbItems" />
+        <CascadingValue Value="_breadcrumbItems">
+            <MudBreadcrumbs Class="mx-5 px-5" Items="_breadcrumbItems" />
+        </CascadingValue>
 
         <MudContainer Class="my-5 py-5">
             @Body
@@ -43,30 +45,13 @@
                 DrawerText = Colors.Grey.Lighten5,
                 DrawerIcon = Colors.Grey.Lighten5,
                 Surface = Colors.BlueGrey.Lighten5,
-                TableLines = Colors.BlueGrey.Lighten4,
-                HoverOpacity = 20
+                TableLines = Colors.BlueGrey.Lighten4
             }
         };
 
     private void ToggleDrawer() => _drawerIsOpened = !_drawerIsOpened;
 
-    protected override void OnParametersSet()
-    {
-        List<string> baseUri = _navManager.Uri.Replace(_navManager.BaseUri, "").Split("/").ToList();
-
-        baseUri.ForEach(async(uriComponent) => 
-        {
-            if (!string.IsNullOrEmpty(uriComponent))
-            {
-                //BreadcrumbItem lastItem = _breadcrumbItems.Last();
-                string hrefComponent = await GetTitle();
-
-                _breadcrumbItems.Add(new BreadcrumbItem(text: hrefComponent, href: $"/{uriComponent}"));
-            }
-        });
-
-        base.OnParametersSet();
-    }
-
     protected async Task<string> GetTitle() => await _jsRuntime.InvokeAsync<string>("getTitle");
+
+    public async Task SetBreadcrumb(List<BreadcrumbItem> breadcrumb) => _breadcrumbItems = breadcrumb;
 }
