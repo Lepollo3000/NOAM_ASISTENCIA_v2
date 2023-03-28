@@ -14,15 +14,15 @@
         <DrawerMenu />
     </MudDrawer>
 
-    <MudMainContent>
-        <CascadingValue Value="_breadcrumbItems">
+    <CascadingValue Value="this">
+        <MudMainContent>
             <MudBreadcrumbs Class="mx-5 px-5" Items="_breadcrumbItems" />
-        </CascadingValue>
 
-        <MudContainer Class="my-5 py-5">
-            @Body
-        </MudContainer>
-    </MudMainContent>
+            <MudContainer Class="my-5 py-5">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+    </CascadingValue>
 </MudLayout>
 
 <MudThemeProvider Theme="_currentTheme" />
@@ -49,9 +49,16 @@
             }
         };
 
+    public async Task SetBreadcrumb(List<BreadcrumbItem> breadcrumb)
+    {
+        _breadcrumbItems = breadcrumb;
+
+        StateHasChanged();
+
+        await Task.CompletedTask;
+    }
+
     private void ToggleDrawer() => _drawerIsOpened = !_drawerIsOpened;
 
     protected async Task<string> GetTitle() => await _jsRuntime.InvokeAsync<string>("getTitle");
-
-    public async Task SetBreadcrumb(List<BreadcrumbItem> breadcrumb) => _breadcrumbItems = breadcrumb;
 }

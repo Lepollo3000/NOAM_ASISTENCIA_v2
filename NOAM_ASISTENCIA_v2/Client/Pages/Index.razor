@@ -7,3 +7,17 @@
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@code {
+    [CascadingParameter] public MainLayout Layout { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
+        {
+            new BreadcrumbItem("Home", href: "")
+        };
+
+        await Layout.SetBreadcrumb(breadcrumb);
+    }
+}

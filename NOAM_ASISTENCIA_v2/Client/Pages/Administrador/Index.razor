@@ -1,5 +1,7 @@
 ﻿@page "/servicios"
 
+<PageTitle>Servicios</PageTitle>
+
 <MudTable ServerData="@(new Func<TableState, Task<TableData<SucursalServicio>>>(GetServerData))" Striped="true"
           Hover="true" Breakpoint="Breakpoint.Sm" @ref="table">
     <ToolBarContent>
