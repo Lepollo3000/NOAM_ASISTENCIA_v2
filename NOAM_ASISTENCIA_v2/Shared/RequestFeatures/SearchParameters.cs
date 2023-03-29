@@ -1,7 +1,7 @@
 ﻿
 namespace NOAM_ASISTENCIA_v2.Shared.RequestFeatures
 {
-    public class ProductParameters
+    public class SearchParameters
     {
         const int maxPageSize = 50;
         private int _pageSize = 10;

@@ -22,14 +22,14 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
 
         // GET: api/SucursalesServicio
         [HttpGet]
-        public async Task<IActionResult> GetSucursalServicios([FromQuery] ProductParameters productParameters)
+        public async Task<IActionResult> GetSucursalServicios([FromQuery] SearchParameters productParameters)
         {
-            IEnumerable<SucursalServicio> registries = await _context.SucursalServicios
-                  .Search(productParameters.SearchTerm!)
-                  .Sort(productParameters.OrderBy!)
-                  .ToListAsync();
+            IQueryable<SucursalServicio> query = _context.SucursalServicios;
 
-            var response = PagedList<SucursalServicio>.ToPagedList(registries, productParameters.PageNumber, productParameters.PageSize);
+            query = Search(query, null!);
+            query = Sort(query, productParameters.OrderBy!);
+
+            var response = PagedList<SucursalServicio>.ToPagedList(await query.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
 
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -119,6 +119,36 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
 
             return NoContent();
         }*/
+
+        private IQueryable<SucursalServicio> Search(IQueryable<SucursalServicio> servicios, string searchValue)
+        {
+            if (string.IsNullOrEmpty(searchValue))
+                return servicios;
+
+            return null!;
+        }
+
+        private IQueryable<SucursalServicio> Sort(IQueryable<SucursalServicio> servicios, string orderByString)
+        {
+            if (string.IsNullOrEmpty(orderByString))
+                return servicios.OrderBy(s => s.Id);
+
+            string[] splittedString = orderByString.Split(' ', 2);
+            string orderBy = splittedString[0];
+            string orderDirection = splittedString[1];
+
+            if (string.IsNullOrEmpty(orderBy) || string.IsNullOrEmpty(orderDirection))
+                return servicios.OrderBy(s => s.Id);
+
+            return orderBy switch
+            {
+                "descripcion" when orderDirection == "ascending"
+                    => servicios.OrderBy(s => s.Descripcion),
+                "descripcion" when orderDirection == "descending"
+                    => servicios.OrderByDescending(s => s.Descripcion),
+                _ => servicios.OrderBy(s => s.Id),
+            };
+        }
 
         private bool SucursalServicioExists(int id)
         {

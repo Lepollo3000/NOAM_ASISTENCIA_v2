@@ -3,7 +3,7 @@ using MudBlazor;
 using NOAM_ASISTENCIA_v2.Client.Shared;
 using NOAM_ASISTENCIA_v2.Shared.Models;
 
-namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador
+namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
 {
     partial class Edit
     {
