@@ -16,10 +16,14 @@
 
     <CascadingValue Value="this">
         <MudMainContent>
-            <MudBreadcrumbs Class="mx-5 px-5" Items="_breadcrumbItems" />
-
             <MudContainer Class="my-5 py-5">
-                @Body
+                <MudBreadcrumbs Class="mb-5" Items="_breadcrumbItems" />
+
+                <MudCard Style="min-height: 75vh;">
+                    <MudCardContent>
+                        @Body
+                    </MudCardContent>
+                </MudCard>
             </MudContainer>
         </MudMainContent>
     </CascadingValue>
@@ -45,7 +49,10 @@
                 DrawerText = Colors.Grey.Lighten5,
                 DrawerIcon = Colors.Grey.Lighten5,
                 Surface = Colors.BlueGrey.Lighten5,
-                TableLines = Colors.BlueGrey.Lighten4
+                TableLines = Colors.BlueGrey.Lighten4,
+                Primary = Colors.Blue.Accent3,
+                Secondary = Colors.Grey.Darken1,
+                Warning = Colors.Amber.Accent3
             }
         };
 

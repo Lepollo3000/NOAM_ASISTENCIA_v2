@@ -12,7 +12,6 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
     partial class Index
     {
         [CascadingParameter] public MainLayout Layout { get; set; } = null!;
-
         [Inject] private HttpClient _client { get; set; } = null!;
 
         private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };

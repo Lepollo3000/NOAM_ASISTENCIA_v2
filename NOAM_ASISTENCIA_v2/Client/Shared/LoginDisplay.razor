@@ -3,12 +3,12 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudButton OnClick="BeginSignOut" StartIcon="@Icons.Material.Filled.Logout" Color="Color.Inherit">Cerrar Sesión</MudButton>
+        <MudButton OnClick="BeginSignOut" StartIcon="fa fa-sign-out-alt" Color="Color.Inherit">Cerrar Sesión</MudButton>
     </Authorized>
 
     <NotAuthorized>
-        <MudButton Href="authentication/register" StartIcon="@Icons.Material.Filled.PersonAddAlt1" Color="Color.Inherit">Registrar</MudButton>
-        <MudButton Href="authentication/login" StartIcon="@Icons.Material.Filled.Login" Color="Color.Inherit">Iniciar Sesión</MudButton>
+        <MudButton Href="authentication/register" StartIcon="fa fa-user-plus" Color="Color.Inherit">Registrar</MudButton>
+        <MudButton Href="authentication/login" StartIcon="fa fa-sign-in-alt" Color="Color.Inherit">Iniciar Sesión</MudButton>
     </NotAuthorized>
 </AuthorizeView>
 

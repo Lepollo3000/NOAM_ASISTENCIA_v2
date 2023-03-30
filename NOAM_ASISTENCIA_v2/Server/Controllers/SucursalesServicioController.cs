@@ -52,9 +52,9 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
             }
 
             return sucursalServicio;
-        }
+        }*/
 
-        // PUT: api/SucursalesServicio/5
+        /*// PUT: api/SucursalesServicio/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSucursalServicio(int id, SucursalServicio sucursalServicio)
@@ -83,24 +83,20 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
             }
 
             return NoContent();
-        }
+        }*/
 
         // POST: api/SucursalesServicio
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<SucursalServicio>> PostSucursalServicio(SucursalServicio sucursalServicio)
         {
-          if (_context.SucursalServicios == null)
-          {
-              return Problem("Entity set 'ApplicationDbContext.SucursalServicios'  is null.");
-          }
             _context.SucursalServicios.Add(sucursalServicio);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetSucursalServicio", new { id = sucursalServicio.Id }, sucursalServicio);
         }
 
-        // DELETE: api/SucursalesServicio/5
+        /*// DELETE: api/SucursalesServicio/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSucursalServicio(int id)
         {
