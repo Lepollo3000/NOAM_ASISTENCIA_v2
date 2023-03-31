@@ -36,14 +36,15 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
             return Ok(response);
         }
 
-        /*// GET: api/SucursalesServicio/5
+        // GET: api/SucursalesServicio/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<SucursalServicio>> GetSucursalServicio(int id)
+        public async Task<IActionResult> GetSucursalServicio(int id)
         {
-          if (_context.SucursalServicios == null)
-          {
-              return NotFound();
-          }
+            if (!SucursalServicioExists(id))
+            {
+                return NotFound();
+            }
+
             var sucursalServicio = await _context.SucursalServicios.FindAsync(id);
 
             if (sucursalServicio == null)
@@ -51,10 +52,10 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
                 return NotFound();
             }
 
-            return sucursalServicio;
-        }*/
+            return Ok(sucursalServicio);
+        }
 
-        /*// PUT: api/SucursalesServicio/5
+        // PUT: api/SucursalesServicio/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSucursalServicio(int id, SucursalServicio sucursalServicio)
@@ -78,17 +79,17 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador");
                 }
             }
 
             return NoContent();
-        }*/
+        }
 
         // POST: api/SucursalesServicio
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<SucursalServicio>> PostSucursalServicio(SucursalServicio sucursalServicio)
+        public async Task<IActionResult> PostSucursalServicio(SucursalServicio sucursalServicio)
         {
             _context.SucursalServicios.Add(sucursalServicio);
             await _context.SaveChangesAsync();
