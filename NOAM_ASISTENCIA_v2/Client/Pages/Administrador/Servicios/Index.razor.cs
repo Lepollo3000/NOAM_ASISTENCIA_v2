@@ -26,7 +26,7 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
         {
             List<BreadcrumbItem> breadcrumb = new()
             {
-                new BreadcrumbItem("Home", href: ""),
+                new BreadcrumbItem("Inicio", href: ""),
                 new BreadcrumbItem("Servicios", href: "/servicios")
             };
 

@@ -24,7 +24,7 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
         {
             List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
             {
-                new BreadcrumbItem("Home", href: ""),
+                new BreadcrumbItem("Inicio", href: ""),
                 new BreadcrumbItem("Servicios", href: "/servicios"),
                 new BreadcrumbItem("Crear", href: $"/servicios/create")
             };
@@ -34,12 +34,11 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
 
         private async void OnValidSubmit(EditContext context)
         {
-            using (var response = await _client.PostAsJsonAsync("sucursalesservicio", _model))
+            using var response = await _client.PostAsJsonAsync("sucursalesservicio", _model);
+
+            if (response.IsSuccessStatusCode)
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    OpenDialog();
-                }
+                OpenDialog();
             }
         }
 

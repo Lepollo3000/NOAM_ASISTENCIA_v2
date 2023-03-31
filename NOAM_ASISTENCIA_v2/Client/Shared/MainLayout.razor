@@ -1,7 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
 @inject NavigationManager _navManager
-@inject IJSRuntime _jsRuntime
 
 <MudLayout>
     <MudAppBar Elevation="5">
@@ -34,7 +33,7 @@
 
 @code {
     private bool _drawerIsOpened = true;
-    private List<BreadcrumbItem> _breadcrumbItems = new List<BreadcrumbItem>() { new BreadcrumbItem("Home", href: "") };
+    private List<BreadcrumbItem> _breadcrumbItems = new List<BreadcrumbItem>() { new BreadcrumbItem("Inicio", href: "") };
     private MudTheme _currentTheme = new MudTheme
         {
             Palette = new Palette()
@@ -67,6 +66,4 @@
     }
 
     private void ToggleDrawer() => _drawerIsOpened = !_drawerIsOpened;
-
-    protected async Task<string> GetTitle() => await _jsRuntime.InvokeAsync<string>("getTitle");
 }

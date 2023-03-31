@@ -1,16 +1,28 @@
-﻿
-<MudDrawerHeader>
+﻿<MudDrawerHeader>
     <MudText Typo="Typo.h6">NOAM Asistencia</MudText>
 </MudDrawerHeader>
 
 <MudNavMenu Color="Color.Info">
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="fa fa-home">Home</MudNavLink>
-    <MudNavLink Href="counter" Icon="fa fa-plus">Counter</MudNavLink>
-    <MudNavLink Href="fetchdata" Icon="fa fa-th-list">FetchData</MudNavLink>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="fa fa-home">Inicio</MudNavLink>
 
     <AuthorizeView Roles="Administrador">
         <MudNavGroup Title="Administrador" Icon="fa fa-user-tie" Expanded>
-            <MudNavLink Href="servicios" Icon="fa fa-store">Servicios</MudNavLink>
+            <MudNavLink Href="servicios" Icon="fa fa-store">Administrar Servicios</MudNavLink>
+            <MudNavLink Href="turnos" Icon="fa fa-clipboard-list">Administrar Turnos</MudNavLink>
+            <MudNavLink Href="users" Icon="fa fa-user-friends">Aministrar Usuarios</MudNavLink>
+        </MudNavGroup>
+    </AuthorizeView>
+
+    <AuthorizeView Roles="Intendente">
+        <MudNavGroup Title="Intendente" Icon="fa fa-hands-wash" Expanded>
+            <MudNavLink Href="asistencia" Icon="fa fa-file-alt">Registrar Asistencia</MudNavLink>
+            <MudNavLink Href="asistencia/reporte" Icon="fa fa-list-ul">Registros de Asistencia</MudNavLink>
+        </MudNavGroup>
+    </AuthorizeView>
+
+    <AuthorizeView Roles="Gerente">
+        <MudNavGroup Title="Gerente" Icon="fa fa-user-lock" Expanded>
+            <MudNavLink Href="asistencia/reportes" Icon="fa fa-list">Reportes de Asistencia</MudNavLink>
         </MudNavGroup>
     </AuthorizeView>
 </MudNavMenu>

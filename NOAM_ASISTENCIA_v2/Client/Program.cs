@@ -31,6 +31,9 @@ builder.Services.AddOidcAuthentication(options =>
 	options.UserOptions.RoleClaim = "role";
 });
 
+// PREVENT AUTHORIZE VIEW COMPONENT TO WRITE ON CONSOLE
+builder.Logging.AddFilter("Microsoft.AspNetCore.Authorization.*", LogLevel.None);
+
 builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();

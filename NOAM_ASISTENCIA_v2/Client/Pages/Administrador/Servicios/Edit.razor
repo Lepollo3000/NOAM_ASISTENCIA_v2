@@ -2,4 +2,34 @@
 
 <PageTitle>Editar Servicio</PageTitle>
 
-<h3>Edit</h3>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="h3">Dar de alta Servicio</h1>
+
+        @if (_model == null)
+        {
+            <div class="d-flex justify-content-center my-5">
+                <MudProgressCircular Color="Color.Info" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="input-group mb-3">
+                    <MudTextField Label="Descripción" AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              HelperText="Se añade primero el código y después el nombre de la sucursal"
+                              @bind-Value="_model.Descripcion" For="@(() => _model.Descripcion)" />
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
+                           Class="ms-auto">Register</MudButton>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+<SuccessDialog Title="@_title" Message="@_message" IsVisible="@_isSuccessVisible" OnClose="CloseDialog" />
