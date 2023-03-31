@@ -9,7 +9,7 @@
 </div>
 
 <MudTable ServerData="@(new Func<TableState, Task<TableData<SucursalServicio>>>(GetServerData))" Striped="true"
-          Hover="true" Breakpoint="Breakpoint.Sm" @ref="_table" AllowUnsorted="false">
+          Hover="true" Breakpoint="Breakpoint.Sm" @ref="_table" AllowUnsorted="false" @bind-RowsPerPage="_page">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Registros</MudText>
         <MudSpacer />

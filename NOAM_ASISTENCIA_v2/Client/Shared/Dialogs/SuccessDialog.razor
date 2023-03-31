@@ -1,0 +1,32 @@
+﻿<MudDialog @bind-IsVisible="IsVisible">
+    <DialogContent>
+        <div class="text-center">
+            <MudIcon Icon="fa fa-check-circle mb-3" Style="font-size: 5em;" Color="Color.Success" Size="Size.Large" />
+
+            <h1 class="h4">@Title</h1>
+        </div>
+
+        <hr />
+
+        <div class="text-justify">
+            <p>@Message</p>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="CloseDialog">Entendido</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public string Title { get; set; } = "Procedimiento exitoso";
+    [Parameter] public string Message { get; set; } = "El procedimiento se ha realizado exitosamente.";
+    [Parameter] public bool IsVisible { get; set; }
+
+    [Inject] private NavigationManager _navManager { get; set; } = null!;
+
+    private async void CloseDialog() => await OnClose.InvokeAsync();
+}

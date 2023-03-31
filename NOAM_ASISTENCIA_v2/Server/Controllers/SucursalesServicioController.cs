@@ -93,7 +93,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Controllers
             _context.SucursalServicios.Add(sucursalServicio);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSucursalServicio", new { id = sucursalServicio.Id }, sucursalServicio);
+            return Ok();
         }
 
         /*// DELETE: api/SucursalesServicio/5

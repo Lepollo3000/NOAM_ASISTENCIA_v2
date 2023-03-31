@@ -12,11 +12,13 @@ namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
     partial class Index
     {
         [CascadingParameter] public MainLayout Layout { get; set; } = null!;
+
         [Inject] private HttpClient _client { get; set; } = null!;
 
         private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
         private readonly int[] _pageSizeOption = { 5, 10, 15, 20 };
 
+        private int _page = 5;
         private SearchParameters _searchParameters = new();
         private MudTable<SucursalServicio> _table = new();
 
