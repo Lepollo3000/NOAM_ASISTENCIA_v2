@@ -12,7 +12,7 @@ using NOAM_ASISTENCIA_v2.Server.Data;
 namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230320012842_Init")]
+    [Migration("20230401181745_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -274,6 +274,9 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("Habilitado")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

@@ -121,7 +121,8 @@ public class InitDB : IHostedService
 					new SucursalServicio
 					{
 						Id = servicio.Id,
-						Descripcion = servicio.Descripcion
+						Descripcion = servicio.Descripcion,
+						Habilitado = true
 					}
 				);
 			}

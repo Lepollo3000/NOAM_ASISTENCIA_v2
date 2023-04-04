@@ -18,6 +18,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Models
         public int Id { get; set; }
         [StringLength(100)]
         public string Descripcion { get; set; } = null!;
+        public bool Habilitado { get; set; }
 
         [InverseProperty("IdSucursalNavigation")]
         public virtual ICollection<Asistencia> Asistencia { get; set; }

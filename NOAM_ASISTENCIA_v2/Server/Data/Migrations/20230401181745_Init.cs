@@ -73,7 +73,8 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Descripcion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    Descripcion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Habilitado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
