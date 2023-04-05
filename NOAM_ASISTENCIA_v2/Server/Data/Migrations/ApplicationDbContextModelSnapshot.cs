@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NOAM_ASISTENCIA_v2.Server.Data;
+using NOAM_ASISTENCIA_V2.Server.Data;
 
 #nullable disable
 
-namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
+namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -125,7 +125,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.ApplicationRole", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -153,7 +153,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -238,7 +238,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.Asistencia", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Asistencia", b =>
                 {
                     b.Property<Guid>("IdUsuario")
                         .HasColumnType("uniqueidentifier");
@@ -259,7 +259,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.ToTable("Asistencia");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.SucursalServicio", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.SucursalServicio", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -280,7 +280,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.ToTable("SucursalServicio");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.Turno", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Turno", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -506,7 +506,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationRole", null)
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -515,7 +515,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", null)
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -524,7 +524,7 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", null)
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -533,13 +533,13 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationRole", null)
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", null)
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -548,16 +548,16 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", null)
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.Turno", "IdTurnoNavigation")
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.Turno", "IdTurnoNavigation")
                         .WithMany("ApplicationUsers")
                         .HasForeignKey("IdTurno")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -567,15 +567,15 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.Navigation("IdTurnoNavigation");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.Asistencia", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Asistencia", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.SucursalServicio", "IdSucursalNavigation")
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.SucursalServicio", "IdSucursalNavigation")
                         .WithMany("Asistencia")
                         .HasForeignKey("IdSucursal")
                         .IsRequired()
                         .HasConstraintName("FK_Asistencia_SucursalServicio1");
 
-                    b.HasOne("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", "IdUsuarioNavigation")
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", "IdUsuarioNavigation")
                         .WithMany("Asistencias")
                         .HasForeignKey("IdUsuario")
                         .IsRequired()
@@ -610,17 +610,17 @@ namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
                     b.Navigation("Authorization");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.ApplicationUser", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Asistencias");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.SucursalServicio", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.SucursalServicio", b =>
                 {
                     b.Navigation("Asistencia");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_v2.Server.Models.Turno", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Turno", b =>
                 {
                     b.Navigation("ApplicationUsers");
                 });

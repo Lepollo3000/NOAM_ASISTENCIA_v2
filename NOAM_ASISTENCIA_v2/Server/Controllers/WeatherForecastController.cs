@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NOAM_ASISTENCIA_v2.Shared;
+using NOAM_ASISTENCIA_V2.Shared;
 
-namespace NOAM_ASISTENCIA_v2.Server.Controllers
+namespace NOAM_ASISTENCIA_V2.Server.Controllers
 {
     [Authorize]
     [ApiController]

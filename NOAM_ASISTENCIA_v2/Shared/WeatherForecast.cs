@@ -1,4 +1,4 @@
-namespace NOAM_ASISTENCIA_v2.Shared
+namespace NOAM_ASISTENCIA_V2.Shared
 {
     public class WeatherForecast
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace NOAM_ASISTENCIA_v2.Server.Utills.Identity
+namespace NOAM_ASISTENCIA_V2.Server.Utills.Identity
 {
     public class ErroresTraducidos : IdentityErrorDescriber
     {

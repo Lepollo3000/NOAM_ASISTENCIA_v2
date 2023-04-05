@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NOAM_ASISTENCIA_v2.Server.Utills.Helpers;
+namespace NOAM_ASISTENCIA_V2.Server.Utills.Helpers;
 
 public static class AsyncEnumerableExtensions
 {

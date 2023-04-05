@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\NOAM_ASISTENCIA_v2.Shared.csproj" />
+    <ProjectReference Include="..\Shared\NOAM_ASISTENCIA_V2.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

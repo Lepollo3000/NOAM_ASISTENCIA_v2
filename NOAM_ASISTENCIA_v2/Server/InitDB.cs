@@ -1,12 +1,12 @@
-﻿using NOAM_ASISTENCIA_v2.Server.Models;
-using NOAM_ASISTENCIA_v2.Server.Utils;
-using NOAM_ASISTENCIA_v2.Server.Data;
+﻿using NOAM_ASISTENCIA_V2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Utils;
+using NOAM_ASISTENCIA_V2.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace NOAM_ASISTENCIA_v2.Server;
+namespace NOAM_ASISTENCIA_V2.Server;
 
 public class InitDB : IHostedService
 {

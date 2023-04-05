@@ -2,7 +2,7 @@ using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
-using NOAM_ASISTENCIA_v2.Client;
+using NOAM_ASISTENCIA_V2.Client;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

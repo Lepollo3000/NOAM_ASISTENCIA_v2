@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace NOAM_ASISTENCIA_v2.Server.Models
+namespace NOAM_ASISTENCIA_V2.Server.Models
 {
     public partial class Asistencia
     {

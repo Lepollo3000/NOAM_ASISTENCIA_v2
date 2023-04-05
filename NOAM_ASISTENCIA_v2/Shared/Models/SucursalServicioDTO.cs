@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NOAM_ASISTENCIA_v2.Shared.Models
+namespace NOAM_ASISTENCIA_V2.Shared.Models
 {
     public class SucursalServicioDTO
     {

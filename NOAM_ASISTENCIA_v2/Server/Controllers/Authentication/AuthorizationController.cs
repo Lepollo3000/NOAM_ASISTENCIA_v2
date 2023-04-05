@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Security.Claims;
-using NOAM_ASISTENCIA_v2.Server.Models;
-using NOAM_ASISTENCIA_v2.Server.Utills.Helpers;
+using NOAM_ASISTENCIA_V2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Utills.Helpers;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -12,7 +12,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace NOAM_ASISTENCIA_v2.Server.Controllers.Authentication
+namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
 {
     public class AuthorizationController : Controller
     {

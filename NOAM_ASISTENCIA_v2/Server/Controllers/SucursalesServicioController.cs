@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using NOAM_ASISTENCIA_v2.Server.Data;
-using NOAM_ASISTENCIA_v2.Server.Models;
-using NOAM_ASISTENCIA_v2.Server.Utils.Paging;
-using NOAM_ASISTENCIA_v2.Server.Utils.Repository;
-using NOAM_ASISTENCIA_v2.Shared.RequestFeatures;
+using NOAM_ASISTENCIA_V2.Server.Data;
+using NOAM_ASISTENCIA_V2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
+using NOAM_ASISTENCIA_V2.Server.Utils.Repository;
+using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 
-namespace NOAM_ASISTENCIA_v2.Server.Controllers
+namespace NOAM_ASISTENCIA_V2.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

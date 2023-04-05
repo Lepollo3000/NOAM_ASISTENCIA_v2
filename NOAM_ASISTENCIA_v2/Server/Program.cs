@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using NOAM_ASISTENCIA_v2.Server;
-using NOAM_ASISTENCIA_v2.Server.Data;
-using NOAM_ASISTENCIA_v2.Server.Models;
-using NOAM_ASISTENCIA_v2.Server.Utills.Identity;
+using NOAM_ASISTENCIA_V2.Server;
+using NOAM_ASISTENCIA_V2.Server.Data;
+using NOAM_ASISTENCIA_V2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Utills.Identity;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 var builder = WebApplication.CreateBuilder(args);

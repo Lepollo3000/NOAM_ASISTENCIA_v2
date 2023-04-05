@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using NOAM_ASISTENCIA_v2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Models;
 
-namespace NOAM_ASISTENCIA_v2.Server.Data
+namespace NOAM_ASISTENCIA_V2.Server.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {

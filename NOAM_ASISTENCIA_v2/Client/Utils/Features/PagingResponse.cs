@@ -1,6 +1,6 @@
-﻿using NOAM_ASISTENCIA_v2.Shared.RequestFeatures;
+﻿using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 
-namespace NOAM_ASISTENCIA_v2.Client.Utils.Features
+namespace NOAM_ASISTENCIA_V2.Client.Utils.Features
 {
     public class PagingResponse<T> where T : class
     {

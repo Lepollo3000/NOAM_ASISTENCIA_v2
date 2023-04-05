@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace NOAM_ASISTENCIA_v2.Server.Data.Migrations
+namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Init : Migration

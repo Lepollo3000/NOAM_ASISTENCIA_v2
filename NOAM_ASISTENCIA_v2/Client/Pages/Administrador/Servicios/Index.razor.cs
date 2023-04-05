@@ -2,14 +2,14 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
-using NOAM_ASISTENCIA_v2.Client.Shared;
-using NOAM_ASISTENCIA_v2.Client.Utils.Features;
-using NOAM_ASISTENCIA_v2.Shared.Models;
-using NOAM_ASISTENCIA_v2.Shared.RequestFeatures;
+using NOAM_ASISTENCIA_V2.Client.Shared;
+using NOAM_ASISTENCIA_V2.Client.Utils.Features;
+using NOAM_ASISTENCIA_V2.Shared.Models;
+using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
+namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
 {
     partial class Index
     {

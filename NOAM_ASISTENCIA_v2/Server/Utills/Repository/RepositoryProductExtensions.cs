@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using System.Text;
 using System.Linq.Dynamic.Core;
-using NOAM_ASISTENCIA_v2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Models;
 
-namespace NOAM_ASISTENCIA_v2.Server.Utils.Repository
+namespace NOAM_ASISTENCIA_V2.Server.Utils.Repository
 {
     public static class RepositoryProductExtensions
     {

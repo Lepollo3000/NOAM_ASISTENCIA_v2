@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-namespace NOAM_ASISTENCIA_v2.Server.Utils
+namespace NOAM_ASISTENCIA_V2.Server.Utils
 {
     public static class IdentityHelpers
     {

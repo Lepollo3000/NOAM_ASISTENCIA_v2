@@ -1,5 +1,5 @@
 ﻿
-namespace NOAM_ASISTENCIA_v2.Shared.RequestFeatures
+namespace NOAM_ASISTENCIA_V2.Shared.RequestFeatures
 {
     public class MetaData
     {

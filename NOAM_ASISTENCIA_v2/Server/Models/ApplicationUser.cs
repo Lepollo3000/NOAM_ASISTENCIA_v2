@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace NOAM_ASISTENCIA_v2.Server.Models
+namespace NOAM_ASISTENCIA_V2.Server.Models
 {
     public class ApplicationUser : IdentityUser<Guid>
     {

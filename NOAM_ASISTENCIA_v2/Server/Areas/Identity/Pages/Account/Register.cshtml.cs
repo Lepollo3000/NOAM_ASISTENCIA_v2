@@ -18,9 +18,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using NOAM_ASISTENCIA_v2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Models;
 
-namespace NOAM_ASISTENCIA_v2.Server.Areas.Identity.Pages.Account
+namespace NOAM_ASISTENCIA_V2.Server.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {

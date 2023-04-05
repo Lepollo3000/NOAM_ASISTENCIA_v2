@@ -8,7 +8,7 @@
       }
     },
     "profiles": {
-      "NOAM_ASISTENCIA_v2.Server": {
+      "NOAM_ASISTENCIA_V2.Server": {
         "commandName": "Project",
         "dotnetRunMessages": true,
         "launchBrowser": true,

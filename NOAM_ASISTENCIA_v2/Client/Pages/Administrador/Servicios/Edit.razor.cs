@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Win32;
 using MudBlazor;
-using NOAM_ASISTENCIA_v2.Client.Shared;
-using NOAM_ASISTENCIA_v2.Shared.Models;
+using NOAM_ASISTENCIA_V2.Client.Shared;
+using NOAM_ASISTENCIA_V2.Shared.Models;
 using System.Net.Http.Json;
 using System.Text.Json;
 using static MudBlazor.CategoryTypes;
 
-namespace NOAM_ASISTENCIA_v2.Client.Pages.Administrador.Servicios
+namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
 {
     partial class Edit
     {
