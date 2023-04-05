@@ -16,11 +16,17 @@
             </div>
 
             <div class="input-group mb-3">
+                <MudCheckBox Label="Habilitado" Color="Color.Primary" T="bool"
+                             @bind-Checked="_model.Habilitado" For="@(() => _model.Habilitado)" />
+            </div>
+
+            <div class="input-group justify-content-between mb-3">
+                <MudButton Href="servicios" Color="Color.Secondary" Variant="Variant.Filled"
+                           StartIcon="fa fa-angle-left">Regresar</MudButton>
+
                 <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
-                           Class="ms-auto">Register</MudButton>
+                           EndIcon="fa fa-check">Register</MudButton>
             </div>
         </EditForm>
     </div>
 </div>
-
-<SuccessDialog Title="@_title" Message="@_message" IsVisible="@_isSuccessVisible" OnClose="CloseDialog" />

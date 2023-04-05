@@ -6,7 +6,7 @@
     <div class="col-md-6">
         <h1 class="h3">Dar de alta Servicio</h1>
 
-        @if (_model == null)
+        @if (_isBusy && _newModel == null)
         {
             <div class="d-flex justify-content-center my-5">
                 <MudProgressCircular Color="Color.Info" Indeterminate="true" />
@@ -14,22 +14,28 @@
         }
         else
         {
-            <EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
+            <EditForm Model="@_newModel" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
 
                 <div class="input-group mb-3">
                     <MudTextField Label="Descripción" AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
                               HelperText="Se añade primero el código y después el nombre de la sucursal"
-                              @bind-Value="_model.Descripcion" For="@(() => _model.Descripcion)" />
+                              @bind-Value="_newModel.Descripcion" For="@(() => _newModel.Descripcion)" />
                 </div>
 
                 <div class="input-group mb-3">
+                    <MudCheckBox Label="Habilitado" Color="Color.Primary" T="bool"
+                             @bind-Checked="_newModel.Habilitado" For="@(() => _newModel.Habilitado)" />
+                </div>
+
+                <div class="input-group justify-content-between mb-3">
+                    <MudButton Href="servicios" Color="Color.Secondary" Variant="Variant.Filled"
+                           StartIcon="fa fa-angle-left">Regresar</MudButton>
+
                     <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
-                           Class="ms-auto">Register</MudButton>
+                           EndIcon="fa fa-check">Actualizar</MudButton>
                 </div>
             </EditForm>
         }
     </div>
 </div>
-
-<SuccessDialog Title="@_title" Message="@_message" IsVisible="@_isSuccessVisible" OnClose="CloseDialog" />

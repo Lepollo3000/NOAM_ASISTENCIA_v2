@@ -4,33 +4,72 @@
 
 <h1 class="h3">Listado de Servicios</h1>
 
-<div class="text-end mb-3">
-    <MudButton Href="servicios/create" EndIcon="fa fa-plus" Variant="Variant.Filled" Color="Color.Primary">Dar de Alta Servicio</MudButton>
+<div class="text-end mb-5">
+    <MudButton Href="servicios/create" EndIcon="fa fa-plus" Variant="Variant.Filled" Color="Color.Primary">
+        Alta de Servicio Nuevo
+    </MudButton>
 </div>
 
-<MudTable ServerData="@(new Func<TableState, Task<TableData<SucursalServicio>>>(GetServerData))" Striped="true"
-          Hover="true" Breakpoint="Breakpoint.Sm" @ref="_table" AllowUnsorted="false" @bind-RowsPerPage="_page">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Registros</MudText>
-        <MudSpacer />
-        <MudTextField ValueChanged="@(s => OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start" IconSize="Size.Medium"
-                      AdornmentIcon="@Icons.Material.Filled.Search" Class="mt-0" T="string"></MudTextField>
-    </ToolBarContent>
+<MudTable ServerData="@(new Func<TableState, Task<TableData<SucursalServicioDTO>>>(GetServerData))"
+          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
+          Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
     <HeaderContent>
-        <MudTh><MudTableSortLabel SortLabel="descripcion" T="SucursalServicio" >Name</MudTableSortLabel></MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="descripcion" T="SucursalServicioDTO">Descripción</MudTableSortLabel>
+        </MudTh>
+
+        <MudTh Class="text-center">Estado</MudTh>
+
+        <MudTh></MudTh>
+
         <MudTh></MudTh>
     </HeaderContent>
+
     <RowTemplate>
-        <MudTd DataLabel="Descripcion">@context.Descripcion</MudTd>
-        <MudTd><MudButton Href="@($"servicios/edit/{context.Id}")" Color="Color.Info" EndIcon="fa fa-edit">Editar</MudButton></MudTd>
+        <MudTd Class="text-md-start text-center">
+            @context.Descripcion
+        </MudTd>
+
+        <MudTd Class="text-center" Style="@($@"background: {(context.Habilitado
+                ? Theme.Palette.Info
+                : Theme.Palette.Error)};")">
+            @(context.Habilitado ? "Habilitado" : "Deshabilitado")
+        </MudTd>
+
+        <MudTd Class="text-center">
+            @if (context.Habilitado)
+            {
+                <MudButton OnClick="async () => await ModificarEstatusRegistro(context)" EndIcon="fa fa-lock"
+                       Variant="Variant.Filled" Color="Color.Error">
+                    Deshabilitar
+                </MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="async () => await ModificarEstatusRegistro(context)" EndIcon="fa fa-lock-open"
+                       Variant="Variant.Filled" Color="Color.Primary">
+                    Habilitar
+                </MudButton>
+            }
+        </MudTd>
+
+        <MudTd Class="text-center">
+            <MudButton Href="@($"servicios/edit/{context.Id}")" Color="Color.Primary" EndIcon="fa fa-edit"
+                       Variant="Variant.Filled">
+                Editar
+            </MudButton>
+        </MudTd>
     </RowTemplate>
+
     <NoRecordsContent>
         <MudText>No se encontraron registros.</MudText>
     </NoRecordsContent>
+
     <LoadingContent>
         <MudText>Cargando...</MudText>
     </LoadingContent>
+
     <PagerContent>
-        <MudTablePager PageSizeOptions="@_pageSizeOption" RowsPerPageString="Registros por página" />
+        <MudTablePager PageSizeOptions="@_pageSizeOption" RowsPerPageString="Mostrar por página" InfoFormat="@_allItemsText" />
     </PagerContent>
 </MudTable>

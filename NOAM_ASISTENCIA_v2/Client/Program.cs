@@ -1,3 +1,4 @@
+using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -35,5 +36,6 @@ builder.Services.AddOidcAuthentication(options =>
 builder.Logging.AddFilter("Microsoft.AspNetCore.Authorization.*", LogLevel.None);
 
 builder.Services.AddMudServices();
+builder.Services.AddSweetAlert2();
 
 await builder.Build().RunAsync();

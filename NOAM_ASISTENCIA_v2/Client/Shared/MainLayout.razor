@@ -14,21 +14,22 @@
     </MudDrawer>
 
     <CascadingValue Value="this">
-        <MudMainContent>
-            <MudContainer Class="py-5">
-                <MudBreadcrumbs Class="mb-2" Items="_breadcrumbItems" />
+        <CascadingValue Value="_currentTheme">
+            <MudMainContent>
+                <MudContainer Class="py-5">
+                    <MudBreadcrumbs Class="mb-2" Items="_breadcrumbItems" />
 
-                <MudCard Class="p-md-5 p-2" Style="min-height: 80vh;">
-                    <MudCardContent>
-                        @Body
-                    </MudCardContent>
-                </MudCard>
-            </MudContainer>
-        </MudMainContent>
+                    <MudCard Class="p-md-5 p-2" Style="min-height: 80vh;">
+                        <MudCardContent>
+                            @Body
+                        </MudCardContent>
+                    </MudCard>
+                </MudContainer>
+            </MudMainContent>
+        </CascadingValue>
     </CascadingValue>
 </MudLayout>
 
-<MudDialogProvider />
 <MudThemeProvider Theme="_currentTheme" />
 
 @code {
