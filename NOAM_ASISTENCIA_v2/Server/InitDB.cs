@@ -69,17 +69,21 @@ public class InitDB : IHostedService
             var turnos = new List<TempTurno>()
             {
                 new TempTurno(id: 1, descripcion: "Ninguno"),
-                new TempTurno(id: 2, descripcion: "Lunes a viernes de 8:00 a 14:00"),
-                new TempTurno (id: 3, descripcion: "Lunes a viernes de 14:00 a 22:00")
+                new TempTurno(id: 2, descripcion: "Lunes-Viernes 06:00-16:00"),
+                new TempTurno(id: 3, descripcion: "Lunes-Viernes 12:00-22:00"),
+                new TempTurno(id: 4, descripcion: "Lunes,Miercoles,Viernes 06:00-16:00"),
+                new TempTurno(id: 5, descripcion: "Lunes,Miercoles,Viernes 12:00-22:00"),
+                new TempTurno(id: 6, descripcion: "Martes,Jueves,Sábado 06:00-16:00"),
+                new TempTurno(id: 7, descripcion: "Martes,Jueves,Sábado 12:00-22:00")
             };
 
             var servicios = new List<TempServicio>()
             {
                 new TempServicio(id: 1, codigoId: "3974", descripcion: "BOWLING MONTERREY"),
                 new TempServicio(id: 2, codigoId: "4010", descripcion: "SMART FIT PLAZA TITAN MTY"),
-                new TempServicio(id: 3, codigoId: "4011", descripcion : "SMART FIT MULTIPLAZA MTY"),
+                new TempServicio(id: 3, codigoId: "4011", descripcion: "SMART FIT MULTIPLAZA MTY"),
                 new TempServicio(id: 4, codigoId: "4012", descripcion: "SMART FIT PLAZA FIESTA MTY"),
-                new TempServicio(id: 5, codigoId: "4017", descripcion : "SMART FIT STA CATARINA MTY")
+                new TempServicio(id: 5, codigoId: "4017", descripcion: "SMART FIT STA CATARINA MTY")
             };
 
             await CreateTurnosIfDontExist(dbcontext, turnos);

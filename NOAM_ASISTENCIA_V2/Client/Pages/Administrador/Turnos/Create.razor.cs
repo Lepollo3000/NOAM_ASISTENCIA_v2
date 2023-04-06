@@ -6,7 +6,7 @@ using NOAM_ASISTENCIA_V2.Client.Shared;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using System.Net.Http.Json;
 
-namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios;
+namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Turnos;
 
 partial class Create
 {
@@ -17,7 +17,7 @@ partial class Create
     [Inject] private NavigationManager NavManager { get; set; } = null!;
     [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
-    private ServicioDTO _model = new() { Habilitado = true };
+    private TurnoDTO _model = new() { Habilitado = true };
 
     protected override async Task OnInitializedAsync()
     {
@@ -29,8 +29,8 @@ partial class Create
         List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
             {
                 new BreadcrumbItem("Inicio", href: ""),
-                new BreadcrumbItem("Servicios", href: "servicios"),
-                new BreadcrumbItem("Crear", href: $"servicios/create")
+                new BreadcrumbItem("Turnos", href: "turnos"),
+                new BreadcrumbItem("Crear", href: $"turnos/create")
             };
 
         await Layout.SetBreadcrumb(breadcrumb);
@@ -47,21 +47,18 @@ partial class Create
         string cancelButtonColor = Theme.Palette.Secondary.Value;
 
         string estatus = _model.Habilitado ? "Habilitado" : "Deshabilitado";
-        string codigoId = _model.CodigoId;
         string descripcion = _model.Descripcion;
 
         string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Habilitado);
         string descripcionLabel = DisplayName.GetDisplayName(_model, m => m.Descripcion);
-        string codigoLabel = DisplayName.GetDisplayName(_model, m => m.CodigoId);
 
         await SwalService.FireAsync(new SweetAlertOptions
         {
             Icon = SweetAlertIcon.Warning,
             Title = "¿Desea realizar esta acción?",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                    El servicio será dado de alta con las siguientes propiedades:
+                    El turno será dado de alta con las siguientes propiedades:
                         <br />
-                        <br /><b>{codigoLabel}:</b> {codigoId}.
                         <br /><b>{descripcionLabel}:</b> {descripcion}.
                         <br /><b>{estatusLabel}:</b> {estatus}.
                         <br />
@@ -96,7 +93,7 @@ partial class Create
                     {
                         // CREA REGISTRO EN EL SERVIDOR
                         using var response = await HttpClient
-                            .PostAsJsonAsync("servicios", _model);
+                            .PostAsJsonAsync("turnos", _model);
 
                         if (response.IsSuccessStatusCode)
                         {
@@ -118,20 +115,17 @@ partial class Create
 
         string estatus = _model.Habilitado ? "Habilitado" : "Deshabilitado";
         string descripcion = _model.Descripcion;
-        string codigo = _model.CodigoId;
 
         string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Habilitado);
         string descripcionLabel = DisplayName.GetDisplayName(_model, m => m.Descripcion);
-        string codigoLabel = DisplayName.GetDisplayName(_model, m => m.CodigoId);
 
         await SwalService.FireAsync(new SweetAlertOptions
         {
             Icon = SweetAlertIcon.Success,
             Title = "Alta exitosa",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                    El servicio ha sido dado de alta exitosamente con las siguientes propiedades:
+                    El turno ha sido dado de alta exitosamente con las siguientes propiedades:
                         <br />
-                        <br /><b>{codigoLabel}:</b> {descripcion}.
                         <br /><b>{descripcionLabel}:</b> {descripcion}.
                         <br /><b>{estatusLabel}:</b> {estatus}.
                 </div>",
@@ -140,7 +134,7 @@ partial class Create
             ConfirmButtonText = "Entendido",
             DidClose = new SweetAlertCallback(() =>
             {
-                NavManager.NavigateTo("servicios");
+                NavManager.NavigateTo("turnos");
             })
         });
     }

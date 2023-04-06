@@ -67,3 +67,7 @@ a, .btn-link {
 a:hover {
     color: var(--mud-palette-grey-lighter) !important;
 }
+
+.mud-input-helper-text {
+    text-align: justify !important;
+}

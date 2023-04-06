@@ -1,20 +1,20 @@
 ﻿using CurrieTechnologies.Razor.SweetAlert2;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using NOAM_ASISTENCIA_V2.Client.Shared;
 using NOAM_ASISTENCIA_V2.Shared.Models;
-using System.Net.Http.Json;
 using System.Text.Json;
+using System.Net.Http.Json;
 
-namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios;
+namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Turnos;
 
 partial class Edit
 {
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
 
-    [Parameter] public int ServicioId { get; set; }
+    [Parameter] public int TurnoId { get; set; }
 
     [Inject] private HttpClient HttpClient { get; set; } = null!;
     [Inject] private NavigationManager NavManager { get; set; } = null!;
@@ -23,8 +23,8 @@ partial class Edit
     private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
 
     private bool _isBusy = false;
-    private ServicioDTO _model = null!;
-    private ServicioDTO _newModel = null!;
+    private TurnoDTO _model = null!;
+    private TurnoDTO _newModel = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -32,7 +32,7 @@ partial class Edit
 
         _isBusy = true;
 
-        using var response = await HttpClient.GetAsync($"servicios/{ServicioId}");
+        using var response = await HttpClient.GetAsync($"turnos/{TurnoId}");
 
         if (response.IsSuccessStatusCode)
         {
@@ -40,11 +40,10 @@ partial class Edit
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
 
-                _model = await JsonSerializer.DeserializeAsync<ServicioDTO>(stream, _options) ?? null!;
-                _newModel = new ServicioDTO
+                _model = await JsonSerializer.DeserializeAsync<TurnoDTO>(stream, _options) ?? null!;
+                _newModel = new TurnoDTO
                 {
                     Id = _model.Id,
-                    CodigoId = _model.CodigoId,
                     Descripcion = _model.Descripcion,
                     Habilitado = _model.Habilitado
                 };
@@ -67,8 +66,8 @@ partial class Edit
         List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
             {
                 new BreadcrumbItem("Inicio", href: ""),
-                new BreadcrumbItem("Servicios", href: "servicios"),
-                new BreadcrumbItem("Editar", href: $"servicios/edit/{ServicioId}")
+                new BreadcrumbItem("Turnos", href: "turnos"),
+                new BreadcrumbItem("Editar", href: $"turnos/edit/{TurnoId}")
             };
 
         await Layout.SetBreadcrumb(breadcrumb);
@@ -147,7 +146,7 @@ partial class Edit
                         {
                             // ACTUALIZAR REGISTRO EN EL SERVIDOR
                             using var response = await HttpClient
-                                .PutAsJsonAsync($"servicios/{ServicioId}", _newModel);
+                                .PutAsJsonAsync($"turnos/{TurnoId}", _newModel);
 
                             if (response.IsSuccessStatusCode)
                             {
@@ -173,14 +172,14 @@ partial class Edit
             Icon = SweetAlertIcon.Success,
             Title = "Modificación exitosa",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                    Se ha modificado el servicio '{_newModel.CodigoId}' exitosamente.
+                    Se ha modificado el turno '{_newModel.Descripcion}' exitosamente.
                 </div>",
             ShowConfirmButton = true,
             ConfirmButtonColor = confirmButtonColor,
             ConfirmButtonText = "Entendido",
             DidClose = new SweetAlertCallback(() =>
             {
-                NavManager.NavigateTo("servicios");
+                NavManager.NavigateTo("turnos");
             })
         });
     }

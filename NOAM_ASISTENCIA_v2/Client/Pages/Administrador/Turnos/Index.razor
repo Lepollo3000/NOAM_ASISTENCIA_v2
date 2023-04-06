@@ -1,5 +1,79 @@
-﻿<h3>Index</h3>
+﻿@page "/turnos"
 
-@code {
+<PageTitle>Turnos</PageTitle>
 
-}
+<h1 class="h3">Listado de Turnos</h1>
+
+<div class="text-end mb-5">
+    <MudButton Href="turnos/create" EndIcon="fa fa-plus" Variant="Variant.Filled" Color="Color.Primary">
+        Alta de Turno Nuevo
+    </MudButton>
+</div>
+
+<MudTable ServerData="@(new Func<TableState, Task<TableData<TurnoDTO>>>(GetServerData))"
+          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
+          Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortLabel="descripcion" T="TurnoDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.Descripcion))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh Class="text-center">
+            @(DisplayName.GetDisplayName(_model, m => m.Habilitado))
+        </MudTh>
+
+        <MudTh></MudTh>
+
+        <MudTh></MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd Class="text-md-start text-center">
+            @context.Descripcion
+        </MudTd>
+
+        <MudTd Class="text-center" Style="@($@"background: {(context.Habilitado
+                ? Theme.Palette.Info
+                : Theme.Palette.Error)};")">
+            @(context.Habilitado ? "Habilitado" : "Deshabilitado")
+        </MudTd>
+
+        <MudTd Class="text-center">
+            @if (context.Habilitado)
+            {
+                <MudButton OnClick="async () => await ModificarEstatusRegistro(context)" EndIcon="fa fa-lock"
+                       Variant="Variant.Filled" Color="Color.Error">
+                    Deshabilitar
+                </MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="async () => await ModificarEstatusRegistro(context)" EndIcon="fa fa-lock-open"
+                       Variant="Variant.Filled" Color="Color.Primary">
+                    Habilitar
+                </MudButton>
+            }
+        </MudTd>
+
+        <MudTd Class="text-center">
+            <MudButton Href="@($"turnos/edit/{context.Id}")" Color="Color.Primary" EndIcon="fa fa-edit"
+                       Variant="Variant.Filled">
+                Editar
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+
+    <NoRecordsContent>
+        <MudText>No se encontraron registros.</MudText>
+    </NoRecordsContent>
+
+    <LoadingContent>
+        <MudText>Cargando...</MudText>
+    </LoadingContent>
+
+    <PagerContent>
+        <MudTablePager PageSizeOptions="@_pageSizeOption" RowsPerPageString="Mostrar por página" InfoFormat="@_allItemsText" />
+    </PagerContent>
+</MudTable>
