@@ -24,6 +24,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Models
 
         [ForeignKey("IdSucursal")]
         [InverseProperty("Asistencia")]
-        public virtual SucursalServicio IdSucursalNavigation { get; set; } = null!;
+        public virtual Servicio IdSucursalNavigation { get; set; } = null!;
     }
 }

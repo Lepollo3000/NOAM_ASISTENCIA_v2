@@ -68,22 +68,22 @@ public class InitDB : IHostedService
         {
             var turnos = new List<TempTurno>()
             {
-                new TempTurno(id: 1, descripcion: "Ninguno", descripcionCorta: "Ninguno"),
-                new TempTurno(id: 2, descripcion: "Lunes a viernes de 8:00 a 14:00", descripcionCorta: "L - V | M" ),
-                new TempTurno (id: 3, descripcion: "Lunes a viernes de 14:00 a 22:00", descripcionCorta: "L - V | V")
+                new TempTurno(id: 1, descripcion: "Ninguno"),
+                new TempTurno(id: 2, descripcion: "Lunes a viernes de 8:00 a 14:00"),
+                new TempTurno (id: 3, descripcion: "Lunes a viernes de 14:00 a 22:00")
             };
 
             var servicios = new List<TempServicio>()
             {
-                new TempServicio(id: 1, descripcion: "3974 BOWLING MONTERREY"),
-                new TempServicio(id: 2, descripcion: "4010 SMART FIT PLAZA TITAN MTY"),
-                new TempServicio(id: 3, descripcion : "4011 SMART FIT MULTIPLAZA MTY"),
-                new TempServicio(id: 4, descripcion: "4012 SMART FIT PLAZA FIESTA MTY"),
-                new TempServicio(id: 5, descripcion : "4017 SMART FIT STA CATARINA MTY")
+                new TempServicio(id: 1, codigoId: "3974", descripcion: "BOWLING MONTERREY"),
+                new TempServicio(id: 2, codigoId: "4010", descripcion: "SMART FIT PLAZA TITAN MTY"),
+                new TempServicio(id: 3, codigoId: "4011", descripcion : "SMART FIT MULTIPLAZA MTY"),
+                new TempServicio(id: 4, codigoId: "4012", descripcion: "SMART FIT PLAZA FIESTA MTY"),
+                new TempServicio(id: 5, codigoId: "4017", descripcion : "SMART FIT STA CATARINA MTY")
             };
 
             await CreateTurnosIfDontExist(dbcontext, turnos);
-            await CreateSucursalesIfDontExist(dbcontext, servicios);
+            await CreateServiciosIfDontExist(dbcontext, servicios);
         }
         catch (Exception)
         {
@@ -102,7 +102,7 @@ public class InitDB : IHostedService
                     {
                         Id = turno.Id,
                         Descripcion = turno.Descripcion,
-                        DescripcionCorta = turno.DescripcionCorta
+                        Habilitado = true
                     }
                 );
             }
@@ -111,16 +111,17 @@ public class InitDB : IHostedService
         dbcontext.SaveChangesWithIdentityInsert<Turno>();
     }
 
-    private async Task CreateSucursalesIfDontExist(ApplicationDbContext dbcontext, IEnumerable<TempServicio> servicios)
+    private async Task CreateServiciosIfDontExist(ApplicationDbContext dbcontext, IEnumerable<TempServicio> servicios)
     {
         foreach (TempServicio servicio in servicios)
         {
-            if (!await dbcontext.SucursalServicios.Where(x => x.Id == servicio.Id).AnyAsync())
+            if (!await dbcontext.Servicios.Where(x => x.Id == servicio.Id).AnyAsync())
             {
-                await dbcontext.SucursalServicios.AddAsync(
-                    new SucursalServicio
+                await dbcontext.Servicios.AddAsync(
+                    new Servicio
                     {
                         Id = servicio.Id,
+                        CodigoId = servicio.CodigoId,
                         Descripcion = servicio.Descripcion,
                         Habilitado = true
                     }
@@ -128,7 +129,7 @@ public class InitDB : IHostedService
             }
         }
 
-        dbcontext.SaveChangesWithIdentityInsert<SucursalServicio>();
+        dbcontext.SaveChangesWithIdentityInsert<Servicio>();
     }
     #endregion
 
@@ -200,11 +201,11 @@ public class InitDB : IHostedService
                 //CONFIRM EMAIL
                 var token = await usermanager.GenerateEmailConfirmationTokenAsync(oUser);
                 await usermanager.ConfirmEmailAsync(oUser, token);
-            }
 
-            if (oUser != null && user.Roles.Any())
-            {
-                await usermanager.AddToRolesAsync(oUser, user.Roles);
+                if (user.Roles.Any())
+                {
+                    await usermanager.AddToRolesAsync(oUser, user.Roles);
+                }
             }
         }
     }
@@ -291,24 +292,24 @@ public class InitDB : IHostedService
     {
         public int Id { get; }
         public string Descripcion { get; } = null!;
-        public string DescripcionCorta { get; } = null!;
 
-        public TempTurno(int id, string descripcion, string descripcionCorta)
+        public TempTurno(int id, string descripcion)
         {
             Id = id;
             Descripcion = descripcion;
-            DescripcionCorta = descripcionCorta;
         }
     }
 
     private class TempServicio
     {
         public int Id { get; }
+        public string CodigoId { get; } = null!;
         public string Descripcion { get; } = null!;
 
-        public TempServicio(int id, string descripcion)
+        public TempServicio(int id, string codigoId, string descripcion)
         {
             Id = id;
+            CodigoId = codigoId;
             Descripcion = descripcion;
         }
     }

@@ -24,8 +24,9 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
         private readonly int[] _pageSizeOption = { 5, 10, 15, 20 };
 
         private int _pageSize = 5;
+        private ServicioDTO _model = new();
         private SearchParameters _searchParameters = new();
-        private MudTable<SucursalServicioDTO> _table = new();
+        private MudTable<ServicioDTO> _table = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -43,23 +44,23 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
             await Layout.SetBreadcrumb(breadcrumb);
         }
 
-        private async Task<TableData<SucursalServicioDTO>> GetServerData(TableState state)
+        private async Task<TableData<ServicioDTO>> GetServerData(TableState state)
         {
             _searchParameters.PageSize = state.PageSize;
             _searchParameters.PageNumber = state.Page + 1;
             _searchParameters.OrderBy = state.SortLabel == null ? state.SortLabel
                 : $"{state.SortLabel} {state.SortDirection.ToDescriptionString()}";
 
-            PagingResponse<SucursalServicioDTO> response = await FetchSucursales(_searchParameters);
+            PagingResponse<ServicioDTO> response = await FetchSucursales(_searchParameters);
 
-            return new TableData<SucursalServicioDTO>
+            return new TableData<ServicioDTO>
             {
                 Items = response.Items,
                 TotalItems = response.MetaData.TotalCount
             };
         }
 
-        private async Task<PagingResponse<SucursalServicioDTO>> FetchSucursales(SearchParameters productParameters)
+        private async Task<PagingResponse<ServicioDTO>> FetchSucursales(SearchParameters productParameters)
         {
             var queryStringParam = new Dictionary<string, string>
             {
@@ -69,7 +70,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 ["orderBy"] = productParameters.OrderBy ?? ""
             };
 
-            using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString("sucursalesservicio", queryStringParam));
+            using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString("servicios", queryStringParam));
 
             if (response.IsSuccessStatusCode)
             {
@@ -78,16 +79,16 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
 
                 Stream stream = await response.Content.ReadAsStreamAsync();
 
-                var pagingResponse = new PagingResponse<SucursalServicioDTO>()
+                var pagingResponse = new PagingResponse<ServicioDTO>()
                 {
-                    Items = await JsonSerializer.DeserializeAsync<List<SucursalServicioDTO>>(stream, _options) ?? null!,
+                    Items = await JsonSerializer.DeserializeAsync<List<ServicioDTO>>(stream, _options) ?? null!,
                     MetaData = metaData!
                 };
 
                 return pagingResponse;
             }
 
-            var nullPagingResponse = new PagingResponse<SucursalServicioDTO>
+            var nullPagingResponse = new PagingResponse<ServicioDTO>
             {
                 Items = null!,
                 MetaData = null!
@@ -96,12 +97,12 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
             return nullPagingResponse;
         }
 
-        private async Task ModificarEstatusRegistro(SucursalServicioDTO registro)
+        private async Task ModificarEstatusRegistro(ServicioDTO registro)
         {
             await ConfirmAlert(registro);
         }
 
-        private async Task ConfirmAlert(SucursalServicioDTO registro)
+        private async Task ConfirmAlert(ServicioDTO registro)
         {
             string confirmButtonColor = Theme.Palette.Error.Value;
             string cancelButtonColor = Theme.Palette.Secondary.Value;
@@ -112,7 +113,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 Icon = SweetAlertIcon.Warning,
                 Title = "¿Desea realizar esta acción?",
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                        Está a punto de cambiar el estado de '{registro.Descripcion}' a {estatusObjetivo}.
+                        Está a punto de cambiar el estado del servicio '{registro.CodigoId}' a {estatusObjetivo}.
                         <br />
                         <br />Si bien se puede revertir esta acción, los resultados de la misma no se 
                         pueden deshacer.
@@ -149,7 +150,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                         {
                             // ACTUALIZAR REGISTRO EN EL SERVIDOR
                             using var response = await HttpClient
-                                .PutAsJsonAsync($"sucursalesservicio/{registro.Id}", registro);
+                                .PutAsJsonAsync($"servicios/{registro.Id}", registro);
 
                             if (response.IsSuccessStatusCode)
                             {
@@ -165,7 +166,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
             });
         }
 
-        private async Task SuccessfulAlert(SucursalServicioDTO registro)
+        private async Task SuccessfulAlert(ServicioDTO registro)
         {
             string confirmButtonColor = Theme.Palette.Primary.Value;
 
@@ -174,7 +175,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 Icon = SweetAlertIcon.Success,
                 Title = "Modificación exitosa",
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                        Se ha modificado el estado de '{registro.Descripcion}' exitosamente.
+                        Se ha modificado el estado del servicio '{registro.CodigoId}' exitosamente.
                     </div>",
                 ShowConfirmButton = true,
                 ConfirmButtonColor = confirmButtonColor,

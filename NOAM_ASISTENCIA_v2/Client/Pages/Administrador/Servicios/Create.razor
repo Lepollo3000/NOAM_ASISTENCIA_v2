@@ -10,13 +10,22 @@
             <DataAnnotationsValidator />
 
             <div class="input-group mb-3">
-                <MudTextField Label="Descripción" AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.CodigoId))"
+                              HelperText="Se añade primero el código y después el nombre de la sucursal"
+                              @bind-Value="_model.CodigoId" For="@(() => _model.CodigoId)" />
+            </div>
+
+            <div class="input-group mb-3">
+                <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Descripcion))"
                               HelperText="Se añade primero el código y después el nombre de la sucursal"
                               @bind-Value="_model.Descripcion" For="@(() => _model.Descripcion)" />
             </div>
 
             <div class="input-group mb-3">
-                <MudCheckBox Label="Habilitado" Color="Color.Primary" T="bool"
+                <MudCheckBox Color="Color.Primary" T="bool"
+                             Label="@(DisplayName.GetDisplayName(_model, m => m.Habilitado))"
                              @bind-Checked="_model.Habilitado" For="@(() => _model.Habilitado)" />
             </div>
 

@@ -4,8 +4,6 @@
 
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h1 class="h3">Dar de alta Servicio</h1>
-
         @if (_isBusy && _newModel == null)
         {
             <div class="d-flex justify-content-center my-5">
@@ -14,17 +12,21 @@
         }
         else
         {
+            <h1 class="h3">Modificar Servicio: @_newModel.CodigoId</h1>
+
             <EditForm Model="@_newModel" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
 
                 <div class="input-group mb-3">
-                    <MudTextField Label="Descripción" AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
-                              HelperText="Se añade primero el código y después el nombre de la sucursal"
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Descripcion))"
+                              HelperText="El nombre de la sucursal, pueden ser abreviaciones"
                               @bind-Value="_newModel.Descripcion" For="@(() => _newModel.Descripcion)" />
                 </div>
 
                 <div class="input-group mb-3">
-                    <MudCheckBox Label="Habilitado" Color="Color.Primary" T="bool"
+                    <MudCheckBox Color="Color.Primary" T="bool"
+                             Label="@(DisplayName.GetDisplayName(_model, m => m.Habilitado))"
                              @bind-Checked="_newModel.Habilitado" For="@(() => _newModel.Habilitado)" />
                 </div>
 

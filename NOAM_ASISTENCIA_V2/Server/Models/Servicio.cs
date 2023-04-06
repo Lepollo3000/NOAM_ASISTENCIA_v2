@@ -6,16 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NOAM_ASISTENCIA_V2.Server.Models
 {
-    [Table("SucursalServicio")]
-    public partial class SucursalServicio
+    [Table("Servicio")]
+    public partial class Servicio
     {
-        public SucursalServicio()
+        public Servicio()
         {
             Asistencia = new HashSet<Asistencia>();
         }
 
         [Key]
         public int Id { get; set; }
+        [StringLength(5)]
+        public string CodigoId { get; set; } = null!;
         [StringLength(100)]
         public string Descripcion { get; set; } = null!;
         public bool Habilitado { get; set; }

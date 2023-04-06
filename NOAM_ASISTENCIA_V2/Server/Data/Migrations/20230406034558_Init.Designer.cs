@@ -12,7 +12,7 @@ using NOAM_ASISTENCIA_V2.Server.Data;
 namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230401181745_Init")]
+    [Migration("20230406034558_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -259,16 +259,21 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
 
                     b.HasIndex("IdSucursal");
 
-                    b.ToTable("Asistencia");
+                    b.ToTable("Asistencias");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.SucursalServicio", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Servicio", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoId")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -280,7 +285,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SucursalServicio");
+                    b.ToTable("Servicio");
                 });
 
             modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Turno", b =>
@@ -296,10 +301,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("DescripcionCorta")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<bool>("Habilitado")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -572,7 +575,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
 
             modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Asistencia", b =>
                 {
-                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.SucursalServicio", "IdSucursalNavigation")
+                    b.HasOne("NOAM_ASISTENCIA_V2.Server.Models.Servicio", "IdSucursalNavigation")
                         .WithMany("Asistencia")
                         .HasForeignKey("IdSucursal")
                         .IsRequired()
@@ -618,7 +621,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                     b.Navigation("Asistencias");
                 });
 
-            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.SucursalServicio", b =>
+            modelBuilder.Entity("NOAM_ASISTENCIA_V2.Server.Models.Servicio", b =>
                 {
                     b.Navigation("Asistencia");
                 });

@@ -68,17 +68,18 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SucursalServicio",
+                name: "Servicio",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    CodigoId = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: false),
                     Descripcion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Habilitado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SucursalServicio", x => x.Id);
+                    table.PrimaryKey("PK_Servicio", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -88,7 +89,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Descripcion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    DescripcionCorta = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
+                    Habilitado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -209,7 +210,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Asistencia",
+                name: "Asistencias",
                 columns: table => new
                 {
                     IdUsuario = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -219,11 +220,11 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Asistencia", x => new { x.IdUsuario, x.IdSucursal, x.FechaEntrada });
+                    table.PrimaryKey("PK_Asistencias", x => new { x.IdUsuario, x.IdSucursal, x.FechaEntrada });
                     table.ForeignKey(
                         name: "FK_Asistencia_SucursalServicio1",
                         column: x => x.IdSucursal,
-                        principalTable: "SucursalServicio",
+                        principalTable: "Servicio",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Asistencia_Usuario",
@@ -318,8 +319,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Asistencia_IdSucursal",
-                table: "Asistencia",
+                name: "IX_Asistencias_IdSucursal",
+                table: "Asistencias",
                 column: "IdSucursal");
 
             migrationBuilder.CreateIndex(
@@ -407,7 +408,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Asistencia");
+                name: "Asistencias");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
@@ -431,7 +432,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Data.Migrations
                 name: "OpenIddictTokens");
 
             migrationBuilder.DropTable(
-                name: "SucursalServicio");
+                name: "Servicio");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

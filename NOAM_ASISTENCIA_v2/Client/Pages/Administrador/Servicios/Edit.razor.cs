@@ -7,7 +7,6 @@ using NOAM_ASISTENCIA_V2.Client.Shared;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using System.Net.Http.Json;
 using System.Text.Json;
-using static MudBlazor.CategoryTypes;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
 {
@@ -25,8 +24,8 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
         private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
 
         private bool _isBusy = false;
-        private SucursalServicioDTO _model = null!;
-        private SucursalServicioDTO _newModel = null!;
+        private ServicioDTO _model = null!;
+        private ServicioDTO _newModel = null!;
 
         protected override async Task OnInitializedAsync()
         {
@@ -34,7 +33,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
 
             _isBusy = true;
 
-            using var response = await HttpClient.GetAsync($"sucursalesservicio/{ServicioId}");
+            using var response = await HttpClient.GetAsync($"servicios/{ServicioId}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -42,10 +41,11 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
 
-                    _model = await JsonSerializer.DeserializeAsync<SucursalServicioDTO>(stream, _options) ?? null!;
-                    _newModel = new SucursalServicioDTO
+                    _model = await JsonSerializer.DeserializeAsync<ServicioDTO>(stream, _options) ?? null!;
+                    _newModel = new ServicioDTO
                     {
                         Id = _model.Id,
+                        CodigoId = _model.CodigoId,
                         Descripcion = _model.Descripcion,
                         Habilitado = _model.Habilitado
                     };
@@ -89,7 +89,10 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
             bool cambioEnEstatus = _newModel.Habilitado != _model.Habilitado;
             string cambios = "";
 
-            if (!cambioEnDescripcion && !cambioEnEstatus)
+            string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Habilitado);
+            string descripcionLabel = DisplayName.GetDisplayName(_model, m => m.Descripcion);
+
+            if (cambioEnDescripcion && !cambioEnEstatus)
             {
                 await SinCambiosAlert();
             }
@@ -97,7 +100,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
             {
                 if (cambioEnDescripcion)
                 {
-                    cambios += $"<br /><b>Descripción:</b> De '{_model.Descripcion}' a '{_newModel.Descripcion}'.";
+                    cambios += $"<br /><b>{descripcionLabel}:</b> De '{_model.Descripcion}' a '{_newModel.Descripcion}'.";
                 }
 
                 if (cambioEnEstatus)
@@ -105,7 +108,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                     string estadoOriginal = _model.Habilitado ? "Habilitado" : "Deshabilitado";
                     string estadoNuevo = _newModel.Habilitado ? "Habilitado" : "Deshabilitado";
 
-                    cambios += $"<br /><b>Estado:</b> De {estadoOriginal} a {estadoNuevo}.";
+                    cambios += $"<br /><b>{estatusLabel}:</b> De {estadoOriginal} a {estadoNuevo}.";
                 }
 
                 await SwalService.FireAsync(new SweetAlertOptions
@@ -113,7 +116,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                     Icon = SweetAlertIcon.Warning,
                     Title = "¿Desea realizar esta acción?",
                     Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                            Está a punto de modificar el servicio:
+                            Está a punto de modificar las siguientes propiedades:
                             <br />{cambios}
                         </div>",
                     ShowConfirmButton = true,
@@ -145,7 +148,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                             {
                                 // ACTUALIZAR REGISTRO EN EL SERVIDOR
                                 using var response = await HttpClient
-                                    .PutAsJsonAsync($"sucursalesservicio/{ServicioId}", _newModel);
+                                    .PutAsJsonAsync($"servicios/{ServicioId}", _newModel);
 
                                 if (response.IsSuccessStatusCode)
                                 {
@@ -171,7 +174,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 Icon = SweetAlertIcon.Success,
                 Title = "Modificación exitosa",
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                        Se ha modificado el servicio '{_newModel.Descripcion}' exitosamente.
+                        Se ha modificado el servicio '{_newModel.CodigoId}' exitosamente.
                     </div>",
                 ShowConfirmButton = true,
                 ConfirmButtonColor = confirmButtonColor,

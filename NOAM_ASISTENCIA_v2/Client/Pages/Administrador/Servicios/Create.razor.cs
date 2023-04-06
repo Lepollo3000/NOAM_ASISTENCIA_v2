@@ -17,7 +17,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
         [Inject] private NavigationManager NavManager { get; set; } = null!;
         [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
-        private SucursalServicioDTO _model = new() { Habilitado = true };
+        private ServicioDTO _model = new() { Habilitado = true };
 
         protected override async Task OnInitializedAsync()
         {
@@ -47,7 +47,12 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
             string cancelButtonColor = Theme.Palette.Secondary.Value;
 
             string estatus = _model.Habilitado ? "Habilitado" : "Deshabilitado";
+            string codigoId = _model.CodigoId;
             string descripcion = _model.Descripcion;
+
+            string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Habilitado);
+            string descripcionLabel = DisplayName.GetDisplayName(_model, m => m.Descripcion);
+            string codigoLabel = DisplayName.GetDisplayName(_model, m => m.CodigoId);
 
             await SwalService.FireAsync(new SweetAlertOptions
             {
@@ -56,8 +61,9 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
                         El servicio será dado de alta con las siguientes propiedades:
                             <br />
-                            <br /><b>Descripción:</b> {descripcion}.
-                            <br /><b>Estatus:</b> {estatus}.
+                            <br /><b>{codigoLabel}:</b> {codigoId}.
+                            <br /><b>{descripcionLabel}:</b> {descripcion}.
+                            <br /><b>{estatusLabel}:</b> {estatus}.
                             <br />
                         <br />Una vez realizada, esta acción no podrá revertirse.
                     </div>",
@@ -90,7 +96,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                         {
                             // CREA REGISTRO EN EL SERVIDOR
                             using var response = await HttpClient
-                                .PostAsJsonAsync("sucursalesservicio", _model);
+                                .PostAsJsonAsync("servicios", _model);
 
                             if (response.IsSuccessStatusCode)
                             {
@@ -112,6 +118,11 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
 
             string estatus = _model.Habilitado ? "Habilitado" : "Deshabilitado";
             string descripcion = _model.Descripcion;
+            string codigo = _model.CodigoId;
+
+            string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Habilitado);
+            string descripcionLabel = DisplayName.GetDisplayName(_model, m => m.Descripcion);
+            string codigoLabel = DisplayName.GetDisplayName(_model, m => m.CodigoId);
 
             await SwalService.FireAsync(new SweetAlertOptions
             {
@@ -120,8 +131,9 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Servicios
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
                         El servicio ha sido dado de alta exitosamente con las siguientes propiedades:
                             <br />
-                            <br /><b>Descripción:</b> {descripcion}.
-                            <br /><b>Estatus:</b> {estatus}.
+                            <br /><b>{codigoLabel}:</b> {descripcion}.
+                            <br /><b>{descripcionLabel}:</b> {descripcion}.
+                            <br /><b>{estatusLabel}:</b> {estatus}.
                     </div>",
                 ShowConfirmButton = true,
                 ConfirmButtonColor = confirmButtonColor,

@@ -18,8 +18,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Models
         public int Id { get; set; }
         [StringLength(100)]
         public string Descripcion { get; set; } = null!;
-        [StringLength(20)]
-        public string DescripcionCorta { get; set; } = null!;
+        public bool Habilitado { get; set; }
 
         [InverseProperty("IdTurnoNavigation")]
         public virtual ICollection<ApplicationUser> ApplicationUsers { get; set; }

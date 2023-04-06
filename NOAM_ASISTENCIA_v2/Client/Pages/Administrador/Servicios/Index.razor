@@ -10,15 +10,25 @@
     </MudButton>
 </div>
 
-<MudTable ServerData="@(new Func<TableState, Task<TableData<SucursalServicioDTO>>>(GetServerData))"
+<MudTable ServerData="@(new Func<TableState, Task<TableData<ServicioDTO>>>(GetServerData))"
           @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
           Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortLabel="descripcion" T="SucursalServicioDTO">Descripción</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="codigoId" T="ServicioDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.CodigoId))
+            </MudTableSortLabel>
         </MudTh>
 
-        <MudTh Class="text-center">Estado</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="descripcion" T="ServicioDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.Descripcion))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh Class="text-center">
+            @(DisplayName.GetDisplayName(_model, m => m.Habilitado))
+        </MudTh>
 
         <MudTh></MudTh>
 
@@ -26,6 +36,10 @@
     </HeaderContent>
 
     <RowTemplate>
+        <MudTd Class="text-md-start text-center">
+            @context.CodigoId
+        </MudTd>
+
         <MudTd Class="text-md-start text-center">
             @context.Descripcion
         </MudTd>

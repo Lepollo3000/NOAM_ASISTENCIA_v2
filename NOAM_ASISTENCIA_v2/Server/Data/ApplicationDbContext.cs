@@ -10,8 +10,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Data
         {
         }
 
-        public virtual DbSet<Asistencia> Asistencia { get; set; } = null!;
-        public virtual DbSet<SucursalServicio> SucursalServicios { get; set; } = null!;
+        public virtual DbSet<Asistencia> Asistencias { get; set; } = null!;
+        public virtual DbSet<Servicio> Servicios { get; set; } = null!;
         public virtual DbSet<Turno> Turnos { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

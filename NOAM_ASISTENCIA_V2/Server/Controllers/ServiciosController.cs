@@ -11,11 +11,11 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SucursalesServicioController : ControllerBase
+    public class ServiciosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public SucursalesServicioController(ApplicationDbContext context)
+        public ServiciosController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -24,12 +24,12 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSucursalServicios([FromQuery] SearchParameters productParameters)
         {
-            IQueryable<SucursalServicio> query = _context.SucursalServicios;
+            IQueryable<Servicio> query = _context.Servicios;
 
             query = Search(query, null!);
             query = Sort(query, productParameters.OrderBy!);
 
-            var response = PagedList<SucursalServicio>.ToPagedList(await query.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
+            var response = PagedList<Servicio>.ToPagedList(await query.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
 
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -45,7 +45,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 return NotFound();
             }
 
-            var sucursalServicio = await _context.SucursalServicios.FindAsync(id);
+            var sucursalServicio = await _context.Servicios.FindAsync(id);
 
             if (sucursalServicio == null)
             {
@@ -58,7 +58,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
         // PUT: api/SucursalesServicio/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSucursalServicio(int id, SucursalServicio sucursalServicio)
+        public async Task<IActionResult> PutSucursalServicio(int id, Servicio sucursalServicio)
         {
             if (id != sucursalServicio.Id)
             {
@@ -89,9 +89,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
         // POST: api/SucursalesServicio
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<IActionResult> PostSucursalServicio(SucursalServicio sucursalServicio)
+        public async Task<IActionResult> PostSucursalServicio(Servicio sucursalServicio)
         {
-            _context.SucursalServicios.Add(sucursalServicio);
+            _context.Servicios.Add(sucursalServicio);
             await _context.SaveChangesAsync();
 
             return Ok();
@@ -117,7 +117,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             return NoContent();
         }*/
 
-        private IQueryable<SucursalServicio> Search(IQueryable<SucursalServicio> servicios, string searchValue)
+        private IQueryable<Servicio> Search(IQueryable<Servicio> servicios, string searchValue)
         {
             if (string.IsNullOrEmpty(searchValue))
                 return servicios;
@@ -125,7 +125,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             return null!;
         }
 
-        private IQueryable<SucursalServicio> Sort(IQueryable<SucursalServicio> servicios, string orderByString)
+        private IQueryable<Servicio> Sort(IQueryable<Servicio> servicios, string orderByString)
         {
             if (string.IsNullOrEmpty(orderByString))
                 return servicios.OrderBy(s => s.Id);
@@ -149,7 +149,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
         private bool SucursalServicioExists(int id)
         {
-            return (_context.SucursalServicios?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Servicios?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
