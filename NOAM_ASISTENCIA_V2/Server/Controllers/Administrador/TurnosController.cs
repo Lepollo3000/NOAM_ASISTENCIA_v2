@@ -1,76 +1,85 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
-using NOAM_ASISTENCIA_V2.Server.Utils.Repository;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 
-namespace NOAM_ASISTENCIA_V2.Server.Controllers
+namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ServiciosController : ControllerBase
+    [Authorize(Roles = "Administrador")]
+    public class TurnosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public ServiciosController(ApplicationDbContext context)
+        public TurnosController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/SucursalesServicio
+        // GET: api/Turnos
         [HttpGet]
-        public async Task<IActionResult> GetSucursalServicios([FromQuery] SearchParameters productParameters)
+        public async Task<IActionResult> GetTurnos([FromQuery] SearchParameters? searchParameters)
         {
-            if (_context.Servicios == null)
+            if (_context.Turnos == null)
             {
                 return NotFound();
             }
 
-            IQueryable<Servicio> query = _context.Servicios;
+            IQueryable<Turno> query = _context.Turnos;
 
-            query = Search(query, null!);
-            query = Sort(query, productParameters.OrderBy!);
+            if (searchParameters == null)
+            {
+                return Ok(query.ToList());
+            }
+            else
+            {
+                query = query.Where(t => t.Id != 1);
+                query = Search(query, null!);
+                query = Sort(query, searchParameters.OrderBy!);
 
-            var response = PagedList<Servicio>.ToPagedList(await query.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
+                var response = PagedList<Turno>.ToPagedList(await query.ToListAsync(), searchParameters.PageNumber, searchParameters.PageSize);
 
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
-            return Ok(response);
+                return Ok(response);
+            }
         }
 
-        // GET: api/SucursalesServicio/5
+        // GET: api/Turnos/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSucursalServicio(int id)
+        public async Task<ActionResult<Turno>> GetTurno(int id)
         {
-            if (!SucursalServicioExists(id))
+            if (_context.Turnos == null)
             {
                 return NotFound();
             }
 
-            var sucursalServicio = await _context.Servicios.FindAsync(id);
+            var turno = await _context.Turnos.FindAsync(id);
 
-            if (sucursalServicio == null)
+            if (turno == null)
             {
                 return NotFound();
             }
 
-            return Ok(sucursalServicio);
+            return turno;
         }
 
-        // PUT: api/SucursalesServicio/5
+        // PUT: api/Turnos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSucursalServicio(int id, Servicio sucursalServicio)
+        public async Task<IActionResult> PutTurno(int id, Turno turno)
         {
-            if (id != sucursalServicio.Id)
+            if (id != turno.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(sucursalServicio).State = EntityState.Modified;
+            _context.Entry(turno).State = EntityState.Modified;
 
             try
             {
@@ -78,51 +87,56 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SucursalServicioExists(id))
+                if (!TurnoExists(id))
                 {
                     return NotFound();
                 }
                 else
                 {
-                    return StatusCode(500, "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador");
+                    throw;
                 }
             }
 
             return NoContent();
         }
 
-        // POST: api/SucursalesServicio
+        // POST: api/Turnos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<IActionResult> PostSucursalServicio(Servicio sucursalServicio)
+        public async Task<ActionResult<Turno>> PostTurno(Turno turno)
         {
-            _context.Servicios.Add(sucursalServicio);
+            if (_context.Turnos == null)
+            {
+                return Problem("Entity set 'ApplicationDbContext.Turnos'  is null.");
+            }
+
+            _context.Turnos.Add(turno);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return CreatedAtAction("GetTurno", new { id = turno.Id }, turno);
         }
 
-        /*// DELETE: api/SucursalesServicio/5
+        /*// DELETE: api/Turnos/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSucursalServicio(int id)
+        public async Task<IActionResult> DeleteTurno(int id)
         {
-            if (_context.SucursalServicios == null)
+            if (_context.Turnos == null)
             {
                 return NotFound();
             }
-            var sucursalServicio = await _context.SucursalServicios.FindAsync(id);
-            if (sucursalServicio == null)
+            var turno = await _context.Turnos.FindAsync(id);
+            if (turno == null)
             {
                 return NotFound();
             }
 
-            _context.SucursalServicios.Remove(sucursalServicio);
+            _context.Turnos.Remove(turno);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }*/
 
-        private IQueryable<Servicio> Search(IQueryable<Servicio> servicios, string searchValue)
+        private IQueryable<Turno> Search(IQueryable<Turno> servicios, string searchValue)
         {
             if (string.IsNullOrEmpty(searchValue))
                 return servicios;
@@ -130,7 +144,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             return null!;
         }
 
-        private IQueryable<Servicio> Sort(IQueryable<Servicio> servicios, string orderByString)
+        private IQueryable<Turno> Sort(IQueryable<Turno> servicios, string orderByString)
         {
             if (string.IsNullOrEmpty(orderByString))
                 return servicios.OrderBy(s => s.Id);
@@ -152,9 +166,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             };
         }
 
-        private bool SucursalServicioExists(int id)
+        private bool TurnoExists(int id)
         {
-            return (_context.Servicios?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Turnos?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

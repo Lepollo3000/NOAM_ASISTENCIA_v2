@@ -1,4 +1,5 @@
 ﻿@page "/turnos/edit/{TurnoId:int}"
+@attribute [Authorize(Roles = "Administrador")]
 
 <PageTitle>Editar Turno</PageTitle>
 
@@ -24,13 +25,16 @@
                                 por una ','), seguido por el rango de horas (Separados de la misma
                                 forma. Utilizar el sistema de 24 horas), pueden ser abreviaciones.
                                 Ejemplo: Lunes-Viernes 06:00-16:00 "
-                              @bind-Value="_newModel.Descripcion" For="@(() => _newModel.Descripcion)" />
+                              @bind-Value="_newModel.Descripcion" For="@(() => _newModel.Descripcion)"
+                              Variant="Variant.Outlined" />
                 </div>
 
-                <div class="input-group mb-3">
-                    <MudCheckBox Color="Color.Primary" T="bool"
-                             Label="@(DisplayName.GetDisplayName(_model, m => m.Habilitado))"
-                             @bind-Checked="_newModel.Habilitado" For="@(() => _newModel.Habilitado)" />
+                <div class="input-group justify-content-center mb-3">
+                    <MudRadioGroup @bind-SelectedOption="_newModel.Habilitado" For="() => _newModel.Habilitado"
+                               T="bool">
+                        <MudRadio Option="true" Color="Color.Primary">Habilitado</MudRadio>
+                        <MudRadio Option="false" Color="Color.Primary">Deshabilitado</MudRadio>
+                    </MudRadioGroup>
                 </div>
 
                 <div class="input-group justify-content-between mb-3">
