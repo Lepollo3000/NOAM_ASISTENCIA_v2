@@ -15,7 +15,7 @@
         }
         else
         {
-            <EditForm Model="@_newModel" OnValidSubmit="OnValidSubmit">
+            <EditForm Model="@_newModel" Context="userContext" OnValidSubmit="OnValidUserSubmit">
                 <DataAnnotationsValidator />
 
                 <hr />
@@ -23,6 +23,55 @@
                 <div class="mb-5">
                     <h2 class="h4"><b>@(DisplayName.GetDisplayName(_model, m => m.Username)):</b> @_model.Username</h2>
                 </div>
+
+                @if (_newModel.ForgotPassword)
+                {
+                    <div class="input-group justify-content-center mb-3">
+                        <EditForm Model="@_passwordChangeModel" OnValidSubmit="OnValidPasswordSubmit">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-5">
+                                <p class="h6" style="text-align: justify">
+                                    Si este apartado aparece, significa que el usuario ha solicitado
+                                    un cambio de contraseña. Rellene los siguientes campos y suba los 
+                                    cambios correspondientes.
+                                </p>
+                            </div>
+
+                            <div class="input-group justify-content-center mb-3">
+                                <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                                      Variant="Variant.Outlined" InputType="@_passwordInputType"
+                                      Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
+                                      OnAdornmentClick="PasswordIconPressed" AdornmentAriaLabel="Show Password"
+                                      Label="@(DisplayName.GetDisplayName(_passwordChangeModel, m => m.NewPassword))"
+                                      HelperText="Debe contener al menos una mayúscula, un caracter
+                                        especial y un número, además de 6 caracteres como mínimo."
+                                      @bind-Value="_passwordChangeModel.NewPassword"
+                                      For="@(() => _passwordChangeModel.NewPassword)" />
+                            </div>
+
+                            <div class="input-group justify-content-center mb-3">
+                                <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                                      Variant="Variant.Outlined" InputType="@_passwordConfirmType"
+                                      Adornment="Adornment.End" AdornmentIcon="@_passwordConfirmIcon"
+                                      OnAdornmentClick="ConfirmPasswordIconPressed" AdornmentAriaLabel="Show Password"
+                                      Label="@(DisplayName.GetDisplayName(_passwordChangeModel, m => m.ConfirmNewPassword))"
+                                      HelperText="La misma contraseña del campo anterior."
+                                      @bind-Value="_passwordChangeModel.ConfirmNewPassword"
+                                      For="@(() => _passwordChangeModel.ConfirmNewPassword)" />
+                            </div>
+
+                            <div class="input-group justify-content-end mb-3">
+                                <MudButton ButtonType="ButtonType.Submit" Color="Color.Error"
+                                   Variant="Variant.Filled" EndIcon="fa fa-sync-alt">
+                                    Cambiar Contraseña
+                                </MudButton>
+                            </div>
+
+                            <hr />
+                        </EditForm>
+                    </div>
+                }
 
                 <div class="input-group mb-3">
                     <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"

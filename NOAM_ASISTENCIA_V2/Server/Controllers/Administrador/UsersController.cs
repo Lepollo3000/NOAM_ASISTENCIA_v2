@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NOAM_ASISTENCIA_V2.Server.Data;
+using NOAM_ASISTENCIA_V2.Server.Data.Migrations;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
 using NOAM_ASISTENCIA_V2.Shared.Models;
@@ -17,12 +18,12 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _usermanager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public UsersController(ApplicationDbContext context, UserManager<ApplicationUser> usermanager)
         {
             _context = context;
-            _usermanager = usermanager;
+            _userManager = usermanager;
         }
 
         [HttpGet]
@@ -33,7 +34,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            IQueryable<ApplicationUser> originalQuery = _usermanager.Users;
+            IQueryable<ApplicationUser> originalQuery = _userManager.Users;
 
             if (searchParameters == null)
             {
@@ -75,7 +76,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            ApplicationUser? user = await _usermanager.Users
+            ApplicationUser? user = await _userManager.Users
                 .Include(u => u.IdTurnoNavigation)
                 .SingleOrDefaultAsync(u => u.UserName == name);
 
@@ -92,7 +93,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 Apellido = user.Apellido,
                 IdTurno = user.IdTurno,
                 NombreTurno = user.IdTurnoNavigation.Descripcion,
-                Lockout = user.Lockout
+                Lockout = user.Lockout,
+                ForgotPassword = user.ForgotPassword
             });
         }
 
@@ -106,7 +108,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return BadRequest();
             }
 
-            ApplicationUser? user = await _usermanager.FindByNameAsync(name);
+            ApplicationUser? user = await _userManager.FindByNameAsync(name);
 
             if (user == null || name != user.UserName)
             {
@@ -139,10 +141,53 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return NoContent();
         }
 
-        [HttpGet("[action]")]
-        public async Task<IActionResult> ForgotPassword()
+        [HttpPut("[action]/{name}")]
+        public async Task<IActionResult> ForgotPassword(string name, PasswordChangeDTO passwordChange)
         {
-            return Ok();
+            if (string.IsNullOrEmpty(name))
+            {
+                return BadRequest();
+            }
+
+            ApplicationUser? user = await _userManager.FindByNameAsync(name);
+
+            if (user == null || name != user.UserName)
+            {
+                return BadRequest();
+            }
+
+            if (user.ForgotPassword)
+            {
+                string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                IdentityResult result = await _userManager.ResetPasswordAsync(user, token, passwordChange.NewPassword);
+
+                if (result.Succeeded)
+                {
+                    user.ForgotPassword = false;
+
+                    _context.Entry(user).State = EntityState.Modified;
+
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        if (!UserExists(name))
+                        {
+                            return NotFound();
+                        }
+                        else
+                        {
+                            return StatusCode(500, "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador");
+                        }
+                    }
+
+                    return NoContent();
+                }
+            }
+
+            return NoContent();
         }
 
         private IQueryable<ApplicationUser> Search(IQueryable<ApplicationUser> users, string searchValue)

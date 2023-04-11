@@ -4,13 +4,14 @@ namespace NOAM_ASISTENCIA_V2.Shared.Models
 {
     public class TurnoDTO
     {
-        [Required]
+        private const string _requiredMessage = "Campo requerido";
+
+        [Required(ErrorMessage = _requiredMessage)]
         public int Id { get; set; }
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = _requiredMessage)]
         [Display(Name = "Descripción")]
         public string Descripcion { get; set; } = null!;
-        [Required]
+        [Required(ErrorMessage = _requiredMessage)]
         [Display(Name = "Estado")]
         public bool Habilitado { get; set; }
     }

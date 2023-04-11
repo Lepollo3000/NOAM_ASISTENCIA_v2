@@ -24,9 +24,52 @@ partial class Edit
     private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
 
     private bool _isBusy = false;
+
     private UserDTO _model = null!;
     private UserDTO _newModel = null!;
+
+    private PasswordChangeDTO _passwordChangeModel = new();
+    private string _passwordInputIcon = "fa fa-eye-slash";
+    private InputType _passwordInputType = InputType.Password;
+    private bool _isPasswordIconShown;
+
+    private string _passwordConfirmIcon = "fa fa-eye-slash";
+    private InputType _passwordConfirmType = InputType.Password;
+    private bool _isPasswordConfirmIconShown;
+
     private IEnumerable<TurnoDTO> _turnos = null!;
+
+    private void PasswordIconPressed()
+    {
+        if(_isPasswordIconShown)
+        {
+            _isPasswordIconShown = false;
+            _passwordInputIcon = "fa fa-eye-slash";
+            _passwordInputType = InputType.Password;
+        }
+        else
+        {
+            _isPasswordIconShown = true;
+            _passwordInputIcon = "fa fa-eye";
+            _passwordInputType = InputType.Text;
+        }
+    }
+
+    private void ConfirmPasswordIconPressed()
+    {
+        if(_isPasswordConfirmIconShown)
+        {
+            _isPasswordConfirmIconShown = false;
+            _passwordConfirmIcon = "fa fa-eye-slash";
+            _passwordConfirmType = InputType.Password;
+        }
+        else
+        {
+            _isPasswordConfirmIconShown = true;
+            _passwordConfirmIcon = "fa fa-eye";
+            _passwordConfirmType = InputType.Text;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,7 +114,8 @@ partial class Edit
                     Apellido = _model.Apellido,
                     IdTurno = _model.IdTurno,
                     NombreTurno = _model.NombreTurno,
-                    Lockout = _model.Lockout
+                    Lockout = _model.Lockout,
+                    ForgotPassword = _model.ForgotPassword
                 };
             }
             catch (Exception)
@@ -125,12 +169,17 @@ partial class Edit
         StateHasChanged();
     }
 
-    private async void OnValidSubmit(EditContext context)
+    private async void OnValidUserSubmit(EditContext context)
     {
-        await ConfirmAlert();
+        await ConfirmUserAlert();
     }
 
-    private async Task ConfirmAlert()
+    private async void OnValidPasswordSubmit(EditContext context)
+    {
+        await ConfirmPasswordAlert();
+    }
+
+    private async Task ConfirmUserAlert()
     {
         string confirmButtonColor = Theme.Palette.Error.Value;
         string cancelButtonColor = Theme.Palette.Secondary.Value;
@@ -215,6 +264,73 @@ partial class Edit
                             // ACTUALIZAR REGISTRO EN EL SERVIDOR
                             using var response = await HttpClient
                                 .PutAsJsonAsync($"users/{Username}", _newModel);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                await SuccessfulConfirmAlert();
+                            }
+                            else
+                            {
+                                await UnhandledErrorAlert();
+                            }
+                        })
+                    });
+                }
+            });
+        }
+    }
+
+    private async Task ConfirmPasswordAlert()
+    {
+        if (_newModel.ForgotPassword)
+        {
+            string confirmButtonColor = Theme.Palette.Error.Value;
+            string cancelButtonColor = Theme.Palette.Secondary.Value;
+
+            string newPasswordLabel = DisplayName.GetDisplayName(_passwordChangeModel, m => m.NewPassword);
+            string newPassword = _passwordChangeModel.NewPassword;
+
+            await SwalService.FireAsync(new SweetAlertOptions
+            {
+                Icon = SweetAlertIcon.Warning,
+                Title = "¿Está seguro?",
+                Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
+                        Está a punto de cambiar la contraseña del usuario <b>{_newModel.Username}</b>:
+                        <br />
+                        <br /><b>{newPasswordLabel}:</b> {newPassword}
+                        <br />
+                        <br />Asegúrese de que la nueva contraseña que se asignará sea la correcta.
+                    </div>",
+                ShowConfirmButton = true,
+                ConfirmButtonColor = confirmButtonColor,
+                ConfirmButtonText = "Aceptar",
+                ShowCancelButton = true,
+                CancelButtonColor = cancelButtonColor,
+                CancelButtonText = "Cancelar",
+                FocusConfirm = false
+            })
+            .ContinueWith(async (swalTask) =>
+            {
+                SweetAlertResult swalResult = await swalTask;
+
+                if (swalResult.IsConfirmed)
+                {
+                    await SwalService.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Cargando... Espere",
+                        Html = $@"<div class=""mx-4 my-5"" style=""text-align: center"">
+                                <i class=""text-info fa fa-sync-alt fa-4x fa-spin""></i>
+                            </div>",
+                        ShowConfirmButton = false,
+                        ShowCancelButton = false,
+                        AllowEscapeKey = false,
+                        AllowEnterKey = false,
+                        AllowOutsideClick = false,
+                        DidOpen = new SweetAlertCallback(async () =>
+                        {
+                            // ACTUALIZAR REGISTRO EN EL SERVIDOR
+                            using var response = await HttpClient
+                                .PutAsJsonAsync($"users/forgotpassword/{Username}", _passwordChangeModel);
 
                             if (response.IsSuccessStatusCode)
                             {
