@@ -293,9 +293,9 @@ partial class Edit
             await SwalService.FireAsync(new SweetAlertOptions
             {
                 Icon = SweetAlertIcon.Warning,
-                Title = "¿Está seguro?",
+                Title = "¿Desea realizar esta acción?",
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                        Está a punto de cambiar la contraseña del usuario <b>{_newModel.Username}</b>:
+                        Está a punto de cambiar la contraseña del usuario: <b>{_newModel.Username}</b>.
                         <br />
                         <br /><b>{newPasswordLabel}:</b> {newPassword}
                         <br />
