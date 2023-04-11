@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
+using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 
 namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
@@ -30,19 +31,27 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            IQueryable<Turno> query = _context.Turnos;
+            IQueryable<Turno> originalQuery = _context.Turnos;
 
             if (searchParameters == null)
             {
-                return Ok(query.ToList());
+                return Ok(originalQuery.ToList());
             }
             else
             {
-                query = query.Where(t => t.Id != 1);
-                query = Search(query, null!);
-                query = Sort(query, searchParameters.OrderBy!);
+                originalQuery = originalQuery.Where(t => t.Id != 1);
+                originalQuery = Search(originalQuery, null!);
+                originalQuery = Sort(originalQuery, searchParameters.OrderBy!);
 
-                var response = PagedList<Turno>.ToPagedList(await query.ToListAsync(), searchParameters.PageNumber, searchParameters.PageSize);
+                IQueryable<TurnoDTO> responseQuery = originalQuery
+                    .Select(turno => new TurnoDTO
+                    {
+                        Id = turno.Id,
+                        Descripcion = turno.Descripcion,
+                        Habilitado = turno.Habilitado
+                    });
+
+                var response = PagedList<TurnoDTO>.ToPagedList(await responseQuery.ToListAsync(), searchParameters.PageNumber, searchParameters.PageSize);
 
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -52,7 +61,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 
         // GET: api/Turnos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Turno>> GetTurno(int id)
+        public async Task<IActionResult> GetTurno(int id)
         {
             if (_context.Turnos == null)
             {
@@ -66,18 +75,28 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            return turno;
+            return Ok(new TurnoDTO
+            {
+                Id = turno.Id,
+                Descripcion = turno.Descripcion,
+                Habilitado = turno.Habilitado
+            });
         }
 
         // PUT: api/Turnos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTurno(int id, Turno turno)
+        public async Task<IActionResult> PutTurno(int id, TurnoDTO turnoDTO)
         {
-            if (id != turno.Id)
+            Turno? turno = await _context.Turnos.FindAsync(id);
+
+            if (turno == null || id != turno.Id)
             {
                 return BadRequest();
             }
+
+            turno.Descripcion = turnoDTO.Descripcion;
+            turno.Habilitado = turnoDTO.Habilitado;
 
             _context.Entry(turno).State = EntityState.Modified;
 
@@ -93,7 +112,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador");
                 }
             }
 

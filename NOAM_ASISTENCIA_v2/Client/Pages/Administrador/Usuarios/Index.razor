@@ -1,8 +1,108 @@
 ﻿@page "/usuarios"
 @attribute [Authorize(Roles = "Administrador")]
 
-<h3>Index</h3>
+<PageTitle>Usuarios</PageTitle>
 
-@code {
+<h1 class="h3">Listado de Usuarios</h1>
 
-}
+<div class="text-end mb-5">
+    <MudButton Href="authentication/register" EndIcon="fa fa-plus" Variant="Variant.Filled" Color="Color.Primary">
+        Alta de Usuario Nuevo
+    </MudButton>
+</div>
+
+<MudTable ServerData="@(new Func<TableState, Task<TableData<UserDTO>>>(GetServerData))"
+          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
+          Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortLabel="username" T="UserDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.Username))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>
+            <MudTableSortLabel SortLabel="nombre" T="UserDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.Nombre))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>
+            <MudTableSortLabel SortLabel="apellido" T="UserDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.Apellido))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>
+            @(DisplayName.GetDisplayName(_model, m => m.NombreTurno))
+        </MudTh>
+
+        <MudTh Class="text-center">
+            @(DisplayName.GetDisplayName(_model, m => m.Lockout))
+        </MudTh>
+
+        <MudTh></MudTh>
+
+        <MudTh></MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>
+            @context.Username
+        </MudTd>
+
+        <MudTd>
+            @context.Nombre
+        </MudTd>
+
+        <MudTd>
+            @context.Apellido
+        </MudTd>
+
+        <MudTd>
+            @context.NombreTurno
+        </MudTd>
+
+        <MudTd Class="text-center" Style="@($@"background: {(!context.Lockout
+                ? Theme.Palette.Info
+                : Theme.Palette.Error)};")">
+            @(!context.Lockout ? "Habilitado" : "Deshabilitado")
+        </MudTd>
+
+        <MudTd Class="text-center">
+            @if (!context.Lockout)
+            {
+                <MudButton OnClick="async () => await ModificarEstatusRegistro(context)" EndIcon="fa fa-lock"
+                       Variant="Variant.Filled" Color="Color.Error">
+                    Deshabilitar
+                </MudButton>
+            }
+            else
+            {
+                <MudButton OnClick="async () => await ModificarEstatusRegistro(context)" EndIcon="fa fa-lock-open"
+                       Variant="Variant.Filled" Color="Color.Primary">
+                    Habilitar
+                </MudButton>
+            }
+        </MudTd>
+
+        <MudTd Class="text-center">
+            <MudButton Href="@($"turnos/edit/{context.Id}")" Color="Color.Primary" EndIcon="fa fa-edit"
+                       Variant="Variant.Filled">
+                Editar
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+
+    <NoRecordsContent>
+        <MudText>No se encontraron registros.</MudText>
+    </NoRecordsContent>
+
+    <LoadingContent>
+        <MudText>Cargando...</MudText>
+    </LoadingContent>
+
+    <PagerContent>
+        <MudTablePager PageSizeOptions="@_pageSizeOption" RowsPerPageString="Mostrar por página" InfoFormat="@_allItemsText" />
+    </PagerContent>
+</MudTable>

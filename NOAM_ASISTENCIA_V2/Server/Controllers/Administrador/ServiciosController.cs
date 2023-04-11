@@ -6,6 +6,7 @@ using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
 using NOAM_ASISTENCIA_V2.Server.Utils.Repository;
+using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 
 namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
@@ -31,12 +32,21 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            IQueryable<Servicio> query = _context.Servicios;
+            IQueryable<Servicio> originalQuery = _context.Servicios;
 
-            query = Search(query, null!);
-            query = Sort(query, productParameters.OrderBy!);
+            originalQuery = Search(originalQuery, null!);
+            originalQuery = Sort(originalQuery, productParameters.OrderBy!);
 
-            var response = PagedList<Servicio>.ToPagedList(await query.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
+            IQueryable<ServicioDTO> responseQuery = originalQuery
+                .Select(servicio => new ServicioDTO
+                {
+                    Id = servicio.Id,
+                    CodigoId = servicio.CodigoId,
+                    Descripcion = servicio.Descripcion,
+                    Habilitado = servicio.Habilitado
+                });
+
+            var response = PagedList<ServicioDTO>.ToPagedList(await responseQuery.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
 
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -52,27 +62,39 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            var sucursalServicio = await _context.Servicios.FindAsync(id);
+            var servicio = await _context.Servicios.FindAsync(id);
 
-            if (sucursalServicio == null)
+            if (servicio == null)
             {
                 return NotFound();
             }
 
-            return Ok(sucursalServicio);
+            return Ok(new ServicioDTO
+            {
+                Id = servicio.Id,
+                CodigoId = servicio.CodigoId,
+                Descripcion = servicio.Descripcion,
+                Habilitado = servicio.Habilitado
+            });
         }
 
         // PUT: api/SucursalesServicio/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSucursalServicio(int id, Servicio sucursalServicio)
+        public async Task<IActionResult> PutSucursalServicio(int id, ServicioDTO sucursalDTO)
         {
-            if (id != sucursalServicio.Id)
+            Servicio? servicio = await _context.Servicios.FindAsync(id);
+
+            if (servicio == null || id != servicio.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(sucursalServicio).State = EntityState.Modified;
+            servicio.CodigoId = sucursalDTO.CodigoId;
+            servicio.Descripcion = sucursalDTO.Descripcion;
+            servicio.Habilitado = sucursalDTO.Habilitado;
+
+            _context.Entry(servicio).State = EntityState.Modified;
 
             try
             {

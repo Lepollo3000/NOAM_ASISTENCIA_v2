@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <None Include="Areas\Identity\Pages\Account\Login.cshtml" />
-    <None Include="Areas\Identity\Pages\Account\Logout.cshtml" />
     <None Include="Areas\Identity\Pages\Account\Register.cshtml" />
     <None Include="Areas\Identity\Pages\Account\_ViewImports.cshtml" />
     <None Include="Areas\Identity\Pages\Shared\_LoginPartial.cshtml" />
@@ -18,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="MailKit" Version="3.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.14" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.13" />

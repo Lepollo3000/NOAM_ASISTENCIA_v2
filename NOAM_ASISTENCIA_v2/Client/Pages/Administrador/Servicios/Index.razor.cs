@@ -158,7 +158,7 @@ partial class Index
                         }
                         else
                         {
-                            await UnhandledErrorAlert();
+                            await UnhandledErrorAlert(registro);
                         }
                     })
                 });
@@ -180,14 +180,14 @@ partial class Index
             ShowConfirmButton = true,
             ConfirmButtonColor = confirmButtonColor,
             ConfirmButtonText = "Entendido",
-            DidClose = new SweetAlertCallback(async () =>
+            DidOpen = new SweetAlertCallback(() =>
             {
-                await _table.ReloadServerData();
+                StateHasChanged();
             })
         });
     }
 
-    private async Task UnhandledErrorAlert()
+    private async Task UnhandledErrorAlert(ServicioDTO registro)
     {
         string confirmButtonColor = Theme.Palette.Primary.Value;
 
@@ -200,7 +200,13 @@ partial class Index
                 </div>",
             ShowConfirmButton = true,
             ConfirmButtonColor = confirmButtonColor,
-            ConfirmButtonText = "Entendido"
+            ConfirmButtonText = "Entendido",
+            DidOpen = new SweetAlertCallback(() =>
+            {
+                registro.Habilitado = !registro.Habilitado;
+
+                StateHasChanged();
+            })
         });
     }
 }
