@@ -10,8 +10,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Usuarios;
-    partial class Index
-    {
+partial class Index
+{
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
 
@@ -69,7 +69,9 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Usuarios;
             ["orderBy"] = productParameters.OrderBy ?? ""
         };
 
-        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString("users", queryStringParam));
+        using var response = await HttpClient.GetAsync(
+            QueryHelpers.AddQueryString("users", queryStringParam)
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -149,7 +151,7 @@ namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Usuarios;
                     {
                         // ACTUALIZAR REGISTRO EN EL SERVIDOR
                         using var response = await HttpClient
-                            .PutAsJsonAsync($"users/{registro.Id}", registro);
+                            .PutAsJsonAsync($"users/{registro.Username}", registro);
 
                         if (response.IsSuccessStatusCode)
                         {

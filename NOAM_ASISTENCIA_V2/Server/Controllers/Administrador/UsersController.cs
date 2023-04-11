@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -8,22 +9,23 @@ using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 
-namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
+namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrador")]
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _usermanager;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(ApplicationDbContext context, UserManager<ApplicationUser> usermanager)
         {
             _context = context;
+            _usermanager = usermanager;
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> GetUsers([FromQuery] SearchParameters? searchParameters)
         {
             if (_context.Users == null)
@@ -31,7 +33,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
                 return NotFound();
             }
 
-            IQueryable<ApplicationUser> originalQuery = _context.Users;
+            IQueryable<ApplicationUser> originalQuery = _usermanager.Users;
 
             if (searchParameters == null)
             {
@@ -65,16 +67,17 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
         }
 
         // GET: api/Turnos/5
-        [HttpGet("{id}")]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> GetUser(Guid id)
+        [HttpGet("{name}")]
+        public async Task<IActionResult> GetUser(string name)
         {
-            if (_context.Users == null)
+            if (string.IsNullOrEmpty(name))
             {
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
+            ApplicationUser? user = await _usermanager.Users
+                .Include(u => u.IdTurnoNavigation)
+                .SingleOrDefaultAsync(u => u.UserName == name);
 
             if (user == null)
             {
@@ -95,18 +98,21 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
 
         // PUT: api/Turnos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> PutUser(Guid id, UserDTO userDTO)
+        [HttpPut("{name}")]
+        public async Task<IActionResult> PutUser(string name, UserDTO userDTO)
         {
-            ApplicationUser? user = await _context.Users.FindAsync(id);
-
-            if (user == null || id != user.Id)
+            if (string.IsNullOrEmpty(name))
             {
                 return BadRequest();
             }
 
-            user.UserName = userDTO.Username;
+            ApplicationUser? user = await _usermanager.FindByNameAsync(name);
+
+            if (user == null || name != user.UserName)
+            {
+                return BadRequest();
+            }
+
             user.Nombre = userDTO.Nombre;
             user.Apellido = userDTO.Apellido;
             user.IdTurno = userDTO.IdTurno;
@@ -120,7 +126,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
+                if (!UserExists(name))
                 {
                     return NotFound();
                 }
@@ -133,7 +139,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
             return NoContent();
         }
 
-        [HttpGet("[controller]/[action]")]
+        [HttpGet("[action]")]
         public async Task<IActionResult> ForgotPassword()
         {
             return Ok();
@@ -180,9 +186,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Authentication
             };
         }
 
-        private bool UserExists(Guid id)
+        private bool UserExists(string name)
         {
-            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Users?.Any(e => e.UserName == name)).GetValueOrDefault();
         }
     }
 }

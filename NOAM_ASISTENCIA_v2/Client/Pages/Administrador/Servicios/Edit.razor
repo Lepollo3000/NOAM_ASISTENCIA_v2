@@ -7,7 +7,7 @@
     <div class="col-md-6">
         <h1 class="h3">Modificar Servicio</h1>
 
-        @if (_isBusy && _newModel == null)
+        @if (_isBusy || _newModel == null)
         {
             <div class="d-flex justify-content-center my-5">
                 <MudProgressCircular Color="Color.Info" Indeterminate="true" />

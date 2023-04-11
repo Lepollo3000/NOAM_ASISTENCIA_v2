@@ -24,7 +24,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 
         // GET: api/Turnos
         [HttpGet]
-        public async Task<IActionResult> GetTurnos([FromQuery] SearchParameters? searchParameters)
+        public async Task<IActionResult> GetTurnos([FromQuery] SearchParameters searchParameters, bool showAll = false)
         {
             if (_context.Turnos == null)
             {
@@ -33,7 +33,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 
             IQueryable<Turno> originalQuery = _context.Turnos;
 
-            if (searchParameters == null)
+            if (showAll)
             {
                 return Ok(originalQuery.ToList());
             }

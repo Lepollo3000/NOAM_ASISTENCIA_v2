@@ -1,5 +1,76 @@
-﻿<h3>Edit</h3>
+﻿@page "/usuarios/edit/{Username}"
+@attribute [Authorize(Roles = "Administrador")]
 
-@code {
+<PageTitle>Editar Usuario</PageTitle>
 
-}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="h3">Modificar Usuario</h1>
+
+        @if (_isBusy || (_turnos == null || _newModel == null))
+        {
+            <div class="d-flex justify-content-center my-5">
+                <MudProgressCircular Color="Color.Info" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@_newModel" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+
+                <hr />
+
+                <div class="mb-5">
+                    <h2 class="h4"><b>@(DisplayName.GetDisplayName(_model, m => m.Username)):</b> @_model.Username</h2>
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Nombre))"
+                              HelperText="La primer letra de cada nombre en mayúscula,
+                                respetando acentos y demás temas gramaticales."
+                              @bind-Value="_newModel.Nombre" For="@(() => _newModel.Nombre)"
+                              Variant="Variant.Outlined" />
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Apellido))"
+                              HelperText="La primer letra de cada apellido en mayúscula,
+                                respetando acentos y demás temas gramaticales."
+                              @bind-Value="_newModel.Apellido" For="@(() => _newModel.Apellido)"
+                              Variant="Variant.Outlined" />
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                           Label="@(DisplayName.GetDisplayName(_model, m => m.IdTurno))"
+                           @bind-Value="_newModel.IdTurno" For="@(() => _newModel.IdTurno)">
+                        @foreach (TurnoDTO turno in _turnos)
+                        {
+                            <MudSelectItem T="int" Value="turno.Id">@turno.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
+                <div class="input-group justify-content-center mb-3">
+                    <MudRadioGroup @bind-SelectedOption="_newModel.Lockout" For="() => _newModel.Lockout"
+                               T="bool">
+                        <MudRadio Option="false" Color="Color.Primary">Habilitado</MudRadio>
+                        <MudRadio Option="true" Color="Color.Primary">Deshabilitado</MudRadio>
+                    </MudRadioGroup>
+                </div>
+
+                <hr />
+
+                <div class="input-group justify-content-between mb-3">
+                    <MudButton Href="usuarios" Color="Color.Secondary" Variant="Variant.Filled"
+                           StartIcon="fa fa-angle-left">Regresar</MudButton>
+
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
+                           EndIcon="fa fa-check">Actualizar</MudButton>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>

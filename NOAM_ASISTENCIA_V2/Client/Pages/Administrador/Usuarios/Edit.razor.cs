@@ -6,15 +6,16 @@ using NOAM_ASISTENCIA_V2.Client.Shared;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using System.Text.Json;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.WebUtilities;
 
-namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Turnos;
+namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Usuarios;
 
 partial class Edit
 {
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
 
-    [Parameter] public int TurnoId { get; set; }
+    [Parameter] public string Username { get; set; } = null!;
 
     [Inject] private HttpClient HttpClient { get; set; } = null!;
     [Inject] private NavigationManager NavManager { get; set; } = null!;
@@ -23,8 +24,9 @@ partial class Edit
     private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
 
     private bool _isBusy = false;
-    private TurnoDTO _model = null!;
-    private TurnoDTO _newModel = null!;
+    private UserDTO _model = null!;
+    private UserDTO _newModel = null!;
+    private IEnumerable<TurnoDTO> _turnos = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -32,7 +34,27 @@ partial class Edit
 
         _isBusy = true;
 
-        using var response = await HttpClient.GetAsync($"turnos/{TurnoId}");
+        await GetUsuario();
+        await GetTurnos();
+
+        _isBusy = false;
+    }
+
+    private async Task InitializeBreadcrumb()
+    {
+        List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
+            {
+                new BreadcrumbItem("Inicio", href: ""),
+                new BreadcrumbItem("Usuarios", href: "usuarios"),
+                new BreadcrumbItem("Editar", href: $"usuarios/edit/{Username}")
+            };
+
+        await Layout.SetBreadcrumb(breadcrumb);
+    }
+
+    private async Task GetUsuario()
+    {
+        using var response = await HttpClient.GetAsync($"users/{Username}");
 
         if (response.IsSuccessStatusCode)
         {
@@ -40,12 +62,16 @@ partial class Edit
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
 
-                _model = await JsonSerializer.DeserializeAsync<TurnoDTO>(stream, _options) ?? null!;
-                _newModel = new TurnoDTO
+                _model = await JsonSerializer.DeserializeAsync<UserDTO>(stream, _options) ?? null!;
+                _newModel = new UserDTO
                 {
                     Id = _model.Id,
-                    Descripcion = _model.Descripcion,
-                    Habilitado = _model.Habilitado
+                    Username = _model.Username,
+                    Nombre = _model.Nombre,
+                    Apellido = _model.Apellido,
+                    IdTurno = _model.IdTurno,
+                    NombreTurno = _model.NombreTurno,
+                    Lockout = _model.Lockout
                 };
             }
             catch (Exception)
@@ -57,20 +83,46 @@ partial class Edit
         {
             await UnhandledErrorAlert();
         }
-
-        _isBusy = false;
     }
 
-    private async Task InitializeBreadcrumb()
+    private async Task GetTurnos()
     {
-        List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
-            {
-                new BreadcrumbItem("Inicio", href: ""),
-                new BreadcrumbItem("Turnos", href: "turnos"),
-                new BreadcrumbItem("Editar", href: $"turnos/edit/{TurnoId}")
-            };
+        var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
 
-        await Layout.SetBreadcrumb(breadcrumb);
+        using var response = await HttpClient.GetAsync(
+            QueryHelpers.AddQueryString("turnos", showAllParam)
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            try
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync();
+
+                _turnos = await JsonSerializer.DeserializeAsync<IEnumerable<TurnoDTO>>(stream, _options) ?? null!;
+            }
+            catch (Exception)
+            {
+                await UnhandledErrorAlert();
+            }
+        }
+        else
+        {
+            await UnhandledErrorAlert();
+        }
+    }
+
+    // CAMBIA EL NOMBRE DEL TURNO QUE SE SELECCIONÓ PARA PODER MOSTRARLO EN LOS ALERTS
+    private void ChangeNombreTurno(int value)
+    {
+        TurnoDTO? turnoSeleccionado = _turnos.SingleOrDefault(t => t.Id == value);
+
+        if (turnoSeleccionado != null)
+        {
+            _newModel.NombreTurno = turnoSeleccionado.Descripcion;
+        }
+
+        StateHasChanged();
     }
 
     private async void OnValidSubmit(EditContext context)
@@ -83,28 +135,44 @@ partial class Edit
         string confirmButtonColor = Theme.Palette.Error.Value;
         string cancelButtonColor = Theme.Palette.Secondary.Value;
 
-        bool cambioEnDescripcion = _newModel.Descripcion != _model.Descripcion;
-        bool cambioEnEstatus = _newModel.Habilitado != _model.Habilitado;
+        bool cambioEnNombre = _newModel.Nombre != _model.Nombre;
+        bool cambioEnApellido = _newModel.Apellido != _model.Apellido;
+        bool cambioEnTurno = _newModel.IdTurno != _model.IdTurno;
+        bool cambioEnEstatus = _newModel.Lockout != _model.Lockout;
         string cambios = "";
 
-        string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Habilitado);
-        string descripcionLabel = DisplayName.GetDisplayName(_model, m => m.Descripcion);
+        string nombreLabel = DisplayName.GetDisplayName(_model, m => m.Nombre);
+        string apellidoLabel = DisplayName.GetDisplayName(_model, m => m.Apellido);
+        string turnoLabel = DisplayName.GetDisplayName(_model, m => m.IdTurno);
+        string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Lockout);
 
-        if (cambioEnDescripcion && !cambioEnEstatus)
+        if (!cambioEnNombre && !cambioEnApellido && !cambioEnTurno && !cambioEnEstatus)
         {
             await NoChangesAlert();
         }
         else
         {
-            if (cambioEnDescripcion)
+            if (cambioEnNombre)
             {
-                cambios += $"<br /><b>{descripcionLabel}:</b> De '{_model.Descripcion}' a '{_newModel.Descripcion}'.";
+                cambios += $"<br /><b>{nombreLabel}:</b> De '{_model.Nombre}' a '{_newModel.Nombre}'.";
+            }
+
+            if (cambioEnApellido)
+            {
+                cambios += $"<br /><b>{apellidoLabel}:</b> De '{_model.Apellido}' a '{_newModel.Apellido}'.";
+            }
+
+            if (cambioEnTurno)
+            {
+                ChangeNombreTurno(_newModel.IdTurno);
+
+                cambios += $"<br /><b>{turnoLabel}:</b> De '{_model.NombreTurno}' a '{_newModel.NombreTurno}'.";
             }
 
             if (cambioEnEstatus)
             {
-                string estadoOriginal = _model.Habilitado ? "Habilitado" : "Deshabilitado";
-                string estadoNuevo = _newModel.Habilitado ? "Habilitado" : "Deshabilitado";
+                string estadoOriginal = !_model.Lockout ? "Habilitado" : "Deshabilitado";
+                string estadoNuevo = !_newModel.Lockout ? "Habilitado" : "Deshabilitado";
 
                 cambios += $"<br /><b>{estatusLabel}:</b> De {estadoOriginal} a {estadoNuevo}.";
             }
@@ -146,7 +214,7 @@ partial class Edit
                         {
                             // ACTUALIZAR REGISTRO EN EL SERVIDOR
                             using var response = await HttpClient
-                                .PutAsJsonAsync($"turnos/{TurnoId}", _newModel);
+                                .PutAsJsonAsync($"users/{Username}", _newModel);
 
                             if (response.IsSuccessStatusCode)
                             {
@@ -172,14 +240,14 @@ partial class Edit
             Icon = SweetAlertIcon.Success,
             Title = "Modificación exitosa",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                    Se ha modificado el turno '{_newModel.Descripcion}' exitosamente.
+                    Se ha modificado el usuario '{_newModel.Username}' exitosamente.
                 </div>",
             ShowConfirmButton = true,
             ConfirmButtonColor = confirmButtonColor,
             ConfirmButtonText = "Entendido",
             DidClose = new SweetAlertCallback(() =>
             {
-                NavManager.NavigateTo("turnos");
+                NavManager.NavigateTo("usuarios");
             })
         });
     }
