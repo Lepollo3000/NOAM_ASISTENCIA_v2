@@ -2,7 +2,7 @@
 
 namespace NOAM_ASISTENCIA_V2.Shared.Models;
 
-public class UserDTO
+public class UserEditDTO
 {
     private const string _requiredMessage = "Campo requerido";
 
@@ -26,4 +26,7 @@ public class UserDTO
     [Required(ErrorMessage = _requiredMessage)]
     [Display(Name = "Olvidó su contraseña")]
     public bool ForgotPassword { get; set; }
+    [Required(ErrorMessage = _requiredMessage)]
+    [Display(Name = "Roles")]
+    public IEnumerable<string> Roles { get; set; } = null!;
 }

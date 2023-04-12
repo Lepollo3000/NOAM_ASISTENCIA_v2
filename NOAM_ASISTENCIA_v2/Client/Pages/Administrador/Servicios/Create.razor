@@ -10,6 +10,8 @@
         <EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator />
 
+            <hr />
+
             <div class="input-group mb-3">
                 <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
                               Label="@(DisplayName.GetDisplayName(_model, m => m.CodigoId))"
@@ -33,6 +35,8 @@
                     <MudRadio Option="false" Color="Color.Primary">Deshabilitado</MudRadio>
                 </MudRadioGroup>
             </div>
+
+            <hr />
 
             <div class="input-group justify-content-between mb-3">
                 <MudButton Href="servicios" Color="Color.Secondary" Variant="Variant.Filled"

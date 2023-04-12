@@ -202,7 +202,7 @@ public class InitDB : IHostedService
 
                 // CREATE USER
                 await usermanager.CreateAsync(oUser, user.Password);
-                //CONFIRM EMAIL
+                // CONFIRM EMAIL
                 var token = await usermanager.GenerateEmailConfirmationTokenAsync(oUser);
                 await usermanager.ConfirmEmailAsync(oUser, token);
 

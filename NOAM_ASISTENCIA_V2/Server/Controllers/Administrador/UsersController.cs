@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,11 +20,13 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
 
-        public UsersController(ApplicationDbContext context, UserManager<ApplicationUser> usermanager)
+        public UsersController(ApplicationDbContext context, UserManager<ApplicationUser> usermanager, RoleManager<ApplicationRole> roleManager)
         {
             _context = context;
             _userManager = usermanager;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
@@ -50,7 +53,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                     .Include(user => user.IdTurnoNavigation)
                     .Select(user => new UserDTO
                     {
-                        Id = user.Id,
                         Username = user.UserName,
                         Nombre = user.Nombre,
                         Apellido = user.Apellido,
@@ -67,9 +69,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             }
         }
 
-        // GET: api/Turnos/5
+        // GET: api/Users/5
         [HttpGet("{name}")]
-        public async Task<IActionResult> GetUser(string name)
+        public async Task<IActionResult> GetUser(string name, bool isEditing)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -85,23 +87,120 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            return Ok(new UserDTO
+            if (isEditing)
             {
-                Id = user.Id,
-                Username = user.UserName,
-                Nombre = user.Nombre,
-                Apellido = user.Apellido,
-                IdTurno = user.IdTurno,
-                NombreTurno = user.IdTurnoNavigation.Descripcion,
-                Lockout = user.Lockout,
-                ForgotPassword = user.ForgotPassword
-            });
+                return Ok(new UserEditDTO
+                {
+                    Username = user.UserName,
+                    Nombre = user.Nombre,
+                    Apellido = user.Apellido,
+                    IdTurno = user.IdTurno,
+                    NombreTurno = user.IdTurnoNavigation.Descripcion,
+                    Lockout = user.Lockout,
+                    ForgotPassword = user.ForgotPassword,
+                    Roles = await _userManager.GetRolesAsync(user)
+                });
+            }
+            else
+            {
+
+                return Ok(new UserDTO
+                {
+                    Username = user.UserName,
+                    Nombre = user.Nombre,
+                    Apellido = user.Apellido,
+                    IdTurno = user.IdTurno,
+                    NombreTurno = user.IdTurnoNavigation.Descripcion,
+                    Lockout = user.Lockout,
+                    ForgotPassword = user.ForgotPassword
+                });
+            }
         }
 
-        // PUT: api/Turnos/5
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetRoles()
+        {
+            if (_roleManager.Roles == null)
+            {
+                return NotFound();
+            }
+
+            IQueryable<string> response = _roleManager.Roles.Select(r => r.Name);
+
+            return Ok(await response.ToListAsync());
+        }
+
+        // POST: api/Users
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<IActionResult> PostUser(UserRegisterDTO registerDTO)
+        {
+            ApplicationUser? oUser = await _userManager.FindByNameAsync(registerDTO.Username);
+
+            // IF THERE IS ALREADY A USER NAMED LIKE THAT
+            if (oUser != null)
+            {
+                return BadRequest();
+            }
+
+            oUser = new ApplicationUser()
+            {
+                Id = Guid.NewGuid(),
+                UserName = registerDTO.Username,
+                Nombre = registerDTO.Nombre,
+                Apellido = registerDTO.Apellido,
+                IdTurno = registerDTO.IdTurno
+            };
+
+            // CREATE USER
+            IdentityResult createResult = await _userManager.CreateAsync(oUser, registerDTO.Password);
+
+            // IF USER CANNOT BE CREATED
+            if (!createResult.Succeeded)
+            {
+                string error = "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador";
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
+            }
+
+            // CONFIRM EMAIL
+            string token = await _userManager.GenerateEmailConfirmationTokenAsync(oUser);
+            IdentityResult confirmEmailResult = await _userManager.ConfirmEmailAsync(oUser, token);
+
+            // IF MAIL CANNOT BE CONFIRMED
+            if (!confirmEmailResult.Succeeded)
+            {
+                string error = "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador";
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
+            }
+
+            IdentityResult rolesAddedResult;
+
+            if (registerDTO.Roles.Any())
+            {
+                rolesAddedResult = await _userManager.AddToRolesAsync(oUser, registerDTO.Roles);
+            }
+            else
+            {
+                rolesAddedResult = await _userManager.AddToRoleAsync(oUser, "Intendente");
+            }
+
+            // IF ROLES CANNOT BE ADDED
+            if (!rolesAddedResult.Succeeded)
+            {
+                string error = "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador";
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
+            }
+
+            return NoContent();
+        }
+
+        // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{name}")]
-        public async Task<IActionResult> PutUser(string name, UserDTO userDTO)
+        public async Task<IActionResult> PutUser(string name, UserEditDTO userDTO)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -134,15 +233,40 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 }
                 else
                 {
-                    return StatusCode(500, "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador");
+                    string error = "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador";
+
+                    return StatusCode(StatusCodes.Status500InternalServerError, error);
                 }
+            }
+
+            await _userManager.RemoveFromRoleAsync(user, "Intendente");
+            await _userManager.RemoveFromRoleAsync(user, "Gerente");
+            await _userManager.RemoveFromRoleAsync(user, "Administrador");
+
+            IdentityResult rolesAddedResult;
+
+            if (userDTO.Roles.Any())
+            {
+                rolesAddedResult = await _userManager.AddToRolesAsync(user, userDTO.Roles);
+            }
+            else
+            {
+                rolesAddedResult = await _userManager.AddToRoleAsync(user, "Intendente");
+            }
+
+            // IF ROLES CANNOT BE ADDED
+            if (!rolesAddedResult.Succeeded)
+            {
+                string error = "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador";
+
+                return StatusCode(StatusCodes.Status500InternalServerError, error);
             }
 
             return NoContent();
         }
 
         [HttpPut("[action]/{name}")]
-        public async Task<IActionResult> ForgotPassword(string name, PasswordChangeDTO passwordChange)
+        public async Task<IActionResult> ForgotPassword(string name, UserPasswordChangeDTO passwordChange)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -179,7 +303,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                         }
                         else
                         {
-                            return StatusCode(500, "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador");
+                            string error = "Lo sentimos, ocurrió un error inesperado. Inténtelo de nuevo más tarde o consulte a un administrador";
+
+                            return StatusCode(StatusCodes.Status500InternalServerError, error);
                         }
                     }
 

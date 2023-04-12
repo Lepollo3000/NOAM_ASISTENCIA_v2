@@ -23,12 +23,10 @@ partial class Edit
 
     private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
 
-    private bool _isBusy = false;
+    private UserEditDTO _model = null!;
+    private UserEditDTO _newModel = null!;
 
-    private UserDTO _model = null!;
-    private UserDTO _newModel = null!;
-
-    private PasswordChangeDTO _passwordChangeModel = new();
+    private UserPasswordChangeDTO _passwordChangeModel = new();
     private string _passwordInputIcon = "fa fa-eye-slash";
     private InputType _passwordInputType = InputType.Password;
     private bool _isPasswordIconShown;
@@ -38,10 +36,11 @@ partial class Edit
     private bool _isPasswordConfirmIconShown;
 
     private IEnumerable<TurnoDTO> _turnos = null!;
+    private IEnumerable<string> _roles = null!;
 
     private void PasswordIconPressed()
     {
-        if(_isPasswordIconShown)
+        if (_isPasswordIconShown)
         {
             _isPasswordIconShown = false;
             _passwordInputIcon = "fa fa-eye-slash";
@@ -57,7 +56,7 @@ partial class Edit
 
     private void ConfirmPasswordIconPressed()
     {
-        if(_isPasswordConfirmIconShown)
+        if (_isPasswordConfirmIconShown)
         {
             _isPasswordConfirmIconShown = false;
             _passwordConfirmIcon = "fa fa-eye-slash";
@@ -75,29 +74,30 @@ partial class Edit
     {
         await InitializeBreadcrumb();
 
-        _isBusy = true;
-
         await GetUsuario();
         await GetTurnos();
-
-        _isBusy = false;
+        await GetRoles();
     }
 
     private async Task InitializeBreadcrumb()
     {
         List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
-            {
-                new BreadcrumbItem("Inicio", href: ""),
-                new BreadcrumbItem("Usuarios", href: "usuarios"),
-                new BreadcrumbItem("Editar", href: $"usuarios/edit/{Username}")
-            };
+        {
+            new BreadcrumbItem("Inicio", href: ""),
+            new BreadcrumbItem("Usuarios", href: "usuarios"),
+            new BreadcrumbItem("Editar", href: $"usuarios/edit/{Username}")
+        };
 
         await Layout.SetBreadcrumb(breadcrumb);
     }
 
     private async Task GetUsuario()
     {
-        using var response = await HttpClient.GetAsync($"users/{Username}");
+        var isEditParam = new Dictionary<string, string> { ["isEditing"] = true.ToString() };
+
+        using var response = await HttpClient.GetAsync(
+            QueryHelpers.AddQueryString($"users/{Username}", isEditParam)
+        );
 
         if (response.IsSuccessStatusCode)
         {
@@ -105,17 +105,17 @@ partial class Edit
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
 
-                _model = await JsonSerializer.DeserializeAsync<UserDTO>(stream, _options) ?? null!;
-                _newModel = new UserDTO
+                _model = await JsonSerializer.DeserializeAsync<UserEditDTO>(stream, _options) ?? null!;
+                _newModel = new()
                 {
-                    Id = _model.Id,
                     Username = _model.Username,
                     Nombre = _model.Nombre,
                     Apellido = _model.Apellido,
                     IdTurno = _model.IdTurno,
                     NombreTurno = _model.NombreTurno,
                     Lockout = _model.Lockout,
-                    ForgotPassword = _model.ForgotPassword
+                    ForgotPassword = _model.ForgotPassword,
+                    Roles = _model.Roles
                 };
             }
             catch (Exception)
@@ -144,6 +144,29 @@ partial class Edit
                 Stream stream = await response.Content.ReadAsStreamAsync();
 
                 _turnos = await JsonSerializer.DeserializeAsync<IEnumerable<TurnoDTO>>(stream, _options) ?? null!;
+            }
+            catch (Exception)
+            {
+                await UnhandledErrorAlert();
+            }
+        }
+        else
+        {
+            await UnhandledErrorAlert();
+        }
+    }
+
+    private async Task GetRoles()
+    {
+        using var response = await HttpClient.GetAsync("users/getroles");
+
+        if (response.IsSuccessStatusCode)
+        {
+            try
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync();
+
+                _roles = await JsonSerializer.DeserializeAsync<IEnumerable<string>>(stream, _options) ?? null!;
             }
             catch (Exception)
             {
@@ -188,14 +211,16 @@ partial class Edit
         bool cambioEnApellido = _newModel.Apellido != _model.Apellido;
         bool cambioEnTurno = _newModel.IdTurno != _model.IdTurno;
         bool cambioEnEstatus = _newModel.Lockout != _model.Lockout;
+        bool cambioEnRoles = _newModel.Roles != _model.Roles;
         string cambios = "";
 
-        string nombreLabel = DisplayName.GetDisplayName(_model, m => m.Nombre);
-        string apellidoLabel = DisplayName.GetDisplayName(_model, m => m.Apellido);
-        string turnoLabel = DisplayName.GetDisplayName(_model, m => m.IdTurno);
-        string estatusLabel = DisplayName.GetDisplayName(_model, m => m.Lockout);
+        string nombreLabel = DisplayName.GetDisplayName(_newModel, m => m.Nombre);
+        string apellidoLabel = DisplayName.GetDisplayName(_newModel, m => m.Apellido);
+        string turnoLabel = DisplayName.GetDisplayName(_newModel, m => m.IdTurno);
+        string estatusLabel = DisplayName.GetDisplayName(_newModel, m => m.Lockout);
+        string rolesLabel = DisplayName.GetDisplayName(_newModel, m => m.Roles);
 
-        if (!cambioEnNombre && !cambioEnApellido && !cambioEnTurno && !cambioEnEstatus)
+        if (!cambioEnNombre && !cambioEnApellido && !cambioEnTurno && !cambioEnEstatus && !cambioEnRoles)
         {
             await NoChangesAlert();
         }
@@ -224,6 +249,25 @@ partial class Edit
                 string estadoNuevo = !_newModel.Lockout ? "Habilitado" : "Deshabilitado";
 
                 cambios += $"<br /><b>{estatusLabel}:</b> De {estadoOriginal} a {estadoNuevo}.";
+            }
+
+            if (cambioEnRoles)
+            {
+                cambios += $"<br /><b>{rolesLabel}:</b>";
+
+                if (!_newModel.Roles.Any())
+                {
+                    string rol = "Intendente";
+
+                    cambios += $"<br /> - {rol}.";
+                }
+                else
+                {
+                    foreach (string rol in _newModel.Roles)
+                    {
+                        cambios += $"<br /> - {rol}.";
+                    }
+                }
             }
 
             await SwalService.FireAsync(new SweetAlertOptions

@@ -2,7 +2,7 @@
 
 namespace NOAM_ASISTENCIA_V2.Shared.Models
 {
-    public class PasswordChangeDTO
+    public class UserPasswordChangeDTO
     {
         private const string _requiredMessage = "Campo requerido";
 

@@ -7,7 +7,7 @@
     <div class="col-md-6">
         <h1 class="h3">Modificar Usuario</h1>
 
-        @if (_isBusy || (_turnos == null || _newModel == null))
+        @if (_turnos == null || _roles == null || _newModel == null)
         {
             <div class="d-flex justify-content-center my-5">
                 <MudProgressCircular Color="Color.Info" Indeterminate="true" />
@@ -33,7 +33,7 @@
                             <div class="mb-5">
                                 <p class="h6" style="text-align: justify">
                                     Si este apartado aparece, significa que el usuario ha solicitado
-                                    un cambio de contraseña. Rellene los siguientes campos y suba los 
+                                    un cambio de contraseña. Rellene los siguientes campos y suba los
                                     cambios correspondientes.
                                 </p>
                             </div>
@@ -94,10 +94,24 @@
                 <div class="input-group mb-3">
                     <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
                            Label="@(DisplayName.GetDisplayName(_model, m => m.IdTurno))"
+                           HelperText="Puede mantenerse vacío."
                            @bind-Value="_newModel.IdTurno" For="@(() => _newModel.IdTurno)">
                         @foreach (TurnoDTO turno in _turnos)
                         {
                             <MudSelectItem T="int" Value="turno.Id">@turno.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                           Label="@(DisplayName.GetDisplayName(_newModel, m => m.Roles))"
+                           HelperText="Pueden seleccionarse más de uno. Si se deja vacío se tomará
+                            automáticamente como Intendente."
+                           T="string" @bind-SelectedValues="_newModel.Roles" MultiSelection="true">
+                        @foreach (string rol in _roles)
+                        {
+                            <MudSelectItem T="string" Value="rol">@rol</MudSelectItem>
                         }
                     </MudSelect>
                 </div>

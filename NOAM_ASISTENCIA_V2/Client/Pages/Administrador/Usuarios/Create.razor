@@ -1,0 +1,116 @@
+﻿@page "/usuarios/create"
+@attribute [Authorize(Roles = "Administrador")]
+
+<PageTitle>Registro de Usuario</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="h3">Registro de Usuario</h1>
+
+        @if (_turnos == null || _roles == null)
+        {
+            <div class="d-flex justify-content-center my-5">
+                <MudProgressCircular Color="Color.Info" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+
+                <hr />
+
+                <div class="input-group mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Username))"
+                              HelperText="El nombre con el que el usuario iniciará sesión.
+                                Se recomienda que sea las iniciales del nombre (o nombres)
+                                y el primer apellido (sin caracteres especiales).
+                                Ejemplo: Rodrigo Hernandez Rodríguez = rhrodriguez."
+                              @bind-Value="_model.Username" For="@(() => _model.Username)"
+                              Variant="Variant.Outlined" />
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Nombre))"
+                              HelperText="Nombre de la persona."
+                              @bind-Value="_model.Nombre" For="@(() => _model.Nombre)"
+                              Variant="Variant.Outlined" />
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Label="@(DisplayName.GetDisplayName(_model, m => m.Apellido))"
+                              HelperText="Apellido de la persona."
+                              @bind-Value="_model.Apellido" For="@(() => _model.Apellido)"
+                              Variant="Variant.Outlined" />
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                           Label="@(DisplayName.GetDisplayName(_model, m => m.IdTurno))"
+                           HelperText="Puede mantenerse vacío."
+                           @bind-Value="_model.IdTurno" For="@(() => _model.IdTurno)">
+                        @foreach (TurnoDTO turno in _turnos)
+                        {
+                            <MudSelectItem T="int" Value="turno.Id">@turno.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
+                <div class="input-group mb-3">
+                    <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                           Label="@(DisplayName.GetDisplayName(_model, m => m.Roles))"
+                           HelperText="Pueden seleccionarse más de uno. Si se deja vacío se tomará
+                            automáticamente como Intendente."
+                           T="string" @bind-SelectedValues="_model.Roles" MultiSelection="true">
+                        @foreach (string rol in _roles)
+                        {
+                            <MudSelectItem T="string" Value="rol">@rol</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
+                <div class="input-group justify-content-center mb-3">
+                    <MudRadioGroup @bind-SelectedOption="_model.Lockout" For="() => _model.Lockout"
+                               T="bool">
+                        <MudRadio Option="false" Color="Color.Primary">Habilitado</MudRadio>
+                        <MudRadio Option="true" Color="Color.Primary">Deshabilitado</MudRadio>
+                    </MudRadioGroup>
+                </div>
+
+                <div class="input-group justify-content-center mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Variant="Variant.Outlined" InputType="@_passwordInputType"
+                              Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="PasswordIconPressed" AdornmentAriaLabel="Show Password"
+                              Label="@(DisplayName.GetDisplayName(_passwordChangeModel, m => m.NewPassword))"
+                              HelperText="Debe contener al menos una mayúscula, un caracter
+                                        especial y un número, además de 6 caracteres como mínimo."
+                              @bind-Value="_model.Password" For="@(() => _model.Password)" />
+                </div>
+
+                <div class="input-group justify-content-center mb-3">
+                    <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
+                              Variant="Variant.Outlined" InputType="@_passwordConfirmType"
+                              Adornment="Adornment.End" AdornmentIcon="@_passwordConfirmIcon"
+                              OnAdornmentClick="ConfirmPasswordIconPressed" AdornmentAriaLabel="Show Password"
+                              Label="@(DisplayName.GetDisplayName(_passwordChangeModel, m => m.ConfirmNewPassword))"
+                              HelperText="La misma contraseña del campo anterior."
+                              @bind-Value="_model.ConfirmPassword" For="@(() => _model.ConfirmPassword)" />
+                </div>
+
+                <hr />
+
+                <div class="input-group justify-content-between mb-3">
+                    <MudButton Href="servicios" Color="Color.Secondary" Variant="Variant.Filled"
+                           StartIcon="fa fa-angle-left">Regresar</MudButton>
+
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled"
+                           EndIcon="fa fa-check">Registrar</MudButton>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
