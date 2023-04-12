@@ -87,10 +87,22 @@
         </MudTd>
 
         <MudTd Class="text-center">
-            <MudButton Href="@($"usuarios/edit/{context.Username}")" Color="Color.Primary" EndIcon="fa fa-edit"
+            @if (context.ForgotPassword)
+            {
+                <MudBadge Icon="fa fa-exclamation" Color="Color.Error" Overlap="true" Bordered="true">
+                    <MudButton Href="@($"usuarios/edit/{context.Username}")" Color="Color.Primary"
+                           EndIcon="fa fa-edit" Variant="Variant.Filled">
+                        Editar
+                    </MudButton>
+                </MudBadge>
+            }
+            else
+            {
+                <MudButton Href="@($"usuarios/edit/{context.Username}")" Color="Color.Primary" EndIcon="fa fa-edit"
                        Variant="Variant.Filled">
-                Editar
-            </MudButton>
+                    Editar
+                </MudButton>
+            }
         </MudTd>
     </RowTemplate>
 

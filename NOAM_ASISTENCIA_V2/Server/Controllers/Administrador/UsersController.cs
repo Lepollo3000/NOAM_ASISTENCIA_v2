@@ -58,7 +58,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                         Apellido = user.Apellido,
                         IdTurno = user.IdTurno,
                         NombreTurno = user.IdTurnoNavigation.Descripcion,
-                        Lockout = user.Lockout
+                        Lockout = user.Lockout,
+                        ForgotPassword = user.ForgotPassword
                     });
 
                 var response = PagedList<UserDTO>.ToPagedList(await responseQuery.ToListAsync(), searchParameters.PageNumber, searchParameters.PageSize);

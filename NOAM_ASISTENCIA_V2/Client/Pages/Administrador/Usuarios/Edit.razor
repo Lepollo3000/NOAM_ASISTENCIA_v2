@@ -5,7 +5,7 @@
 
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h1 class="h3">Modificar Usuario</h1>
+        <h1 class="h3">Actualizar Informacion de <b>@Username</b></h1>
 
         @if (_turnos == null || _roles == null || _newModel == null)
         {
@@ -20,62 +20,28 @@
 
                 <hr />
 
-                <div class="mb-5">
-                    <h2 class="h4"><b>@(DisplayName.GetDisplayName(_model, m => m.Username)):</b> @_model.Username</h2>
-                </div>
-
+                @*SI EL USUARIO SOLICITÓ UN CAMBIO DE CONTRASEÑA*@
                 @if (_newModel.ForgotPassword)
                 {
-                    <div class="input-group justify-content-center mb-3">
-                        <EditForm Model="@_passwordChangeModel" OnValidSubmit="OnValidPasswordSubmit">
-                            <DataAnnotationsValidator />
+                    <div class="mb-5">
+                        <p class="h6" style="text-align: justify">
+                            Si este apartado aparece, significa que el usuario ha solicitado
+                            un cambio de contraseña. Haga clic en el siguiente botón para
+                            dirigirse a la pantalla de cambio de contraseña.
+                        </p>
+                    </div>
 
-                            <div class="mb-5">
-                                <p class="h6" style="text-align: justify">
-                                    Si este apartado aparece, significa que el usuario ha solicitado
-                                    un cambio de contraseña. Rellene los siguientes campos y suba los
-                                    cambios correspondientes.
-                                </p>
-                            </div>
-
-                            <div class="input-group justify-content-center mb-3">
-                                <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
-                                      Variant="Variant.Outlined" InputType="@_passwordInputType"
-                                      Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"
-                                      OnAdornmentClick="PasswordIconPressed" AdornmentAriaLabel="Show Password"
-                                      Label="@(DisplayName.GetDisplayName(_passwordChangeModel, m => m.NewPassword))"
-                                      HelperText="Debe contener al menos una mayúscula, un caracter
-                                        especial y un número, además de 6 caracteres como mínimo."
-                                      @bind-Value="_passwordChangeModel.NewPassword"
-                                      For="@(() => _passwordChangeModel.NewPassword)" />
-                            </div>
-
-                            <div class="input-group justify-content-center mb-3">
-                                <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
-                                      Variant="Variant.Outlined" InputType="@_passwordConfirmType"
-                                      Adornment="Adornment.End" AdornmentIcon="@_passwordConfirmIcon"
-                                      OnAdornmentClick="ConfirmPasswordIconPressed" AdornmentAriaLabel="Show Password"
-                                      Label="@(DisplayName.GetDisplayName(_passwordChangeModel, m => m.ConfirmNewPassword))"
-                                      HelperText="La misma contraseña del campo anterior."
-                                      @bind-Value="_passwordChangeModel.ConfirmNewPassword"
-                                      For="@(() => _passwordChangeModel.ConfirmNewPassword)" />
-                            </div>
-
-                            <div class="input-group justify-content-end mb-3">
-                                <MudButton ButtonType="ButtonType.Submit" Color="Color.Error"
-                                   Variant="Variant.Filled" EndIcon="fa fa-sync-alt">
-                                    Cambiar Contraseña
-                                </MudButton>
-                            </div>
-
-                            <hr />
-                        </EditForm>
+                    <div class="input-group justify-content-end mb-3">
+                        <MudButton Href="@($"usuarios/edit/password/{_newModel.Username}")"
+                           Color="Color.Error" Variant="Variant.Filled" EndIcon="fa fa-sync-alt">
+                            Cambiar Contraseña
+                        </MudButton>
                     </div>
                 }
 
                 <div class="input-group mb-3">
                     <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
-                              Label="@(DisplayName.GetDisplayName(_model, m => m.Nombre))"
+                              Label="@(DisplayName.GetDisplayName(_newModel, m => m.Nombre))"
                               HelperText="La primer letra de cada nombre en mayúscula,
                                 respetando acentos y demás temas gramaticales."
                               @bind-Value="_newModel.Nombre" For="@(() => _newModel.Nombre)"
@@ -84,7 +50,7 @@
 
                 <div class="input-group mb-3">
                     <MudTextField AdornmentColor="Color.Primary" OnlyValidateIfDirty="true"
-                              Label="@(DisplayName.GetDisplayName(_model, m => m.Apellido))"
+                              Label="@(DisplayName.GetDisplayName(_newModel, m => m.Apellido))"
                               HelperText="La primer letra de cada apellido en mayúscula,
                                 respetando acentos y demás temas gramaticales."
                               @bind-Value="_newModel.Apellido" For="@(() => _newModel.Apellido)"
@@ -93,7 +59,7 @@
 
                 <div class="input-group mb-3">
                     <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
-                           Label="@(DisplayName.GetDisplayName(_model, m => m.IdTurno))"
+                           Label="@(DisplayName.GetDisplayName(_newModel, m => m.IdTurno))"
                            HelperText="Puede mantenerse vacío."
                            @bind-Value="_newModel.IdTurno" For="@(() => _newModel.IdTurno)">
                         @foreach (TurnoDTO turno in _turnos)

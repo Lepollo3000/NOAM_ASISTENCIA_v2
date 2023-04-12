@@ -1,16 +1,17 @@
 ﻿using CurrieTechnologies.Razor.SweetAlert2;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.WebUtilities;
 using MudBlazor;
 using NOAM_ASISTENCIA_V2.Client.Shared;
 using NOAM_ASISTENCIA_V2.Shared.Models;
-using System.Text.Json;
+using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.WebUtilities;
+using System.Text.Json;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Usuarios;
 
-partial class Edit
+partial class EditPassword
 {
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
@@ -23,19 +24,22 @@ partial class Edit
 
     private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
 
-    private UserEditDTO _model = null!;
-    private UserEditDTO _newModel = null!;
+    private UserDTO _model = null!;
 
-    private IEnumerable<TurnoDTO> _turnos = null!;
-    private IEnumerable<string> _roles = null!;
+    private UserPasswordChangeDTO _passwordChangeModel = new();
+    private string _passwordInputIcon = "fa fa-eye-slash";
+    private InputType _passwordInputType = InputType.Password;
+    private bool _isPasswordIconShown;
+
+    private string _passwordConfirmIcon = "fa fa-eye-slash";
+    private InputType _passwordConfirmType = InputType.Password;
+    private bool _isPasswordConfirmIconShown;
 
     protected override async Task OnInitializedAsync()
     {
         await InitializeBreadcrumb();
 
         await GetUsuario();
-        await GetTurnos();
-        await GetRoles();
     }
 
     private async Task InitializeBreadcrumb()
@@ -52,11 +56,7 @@ partial class Edit
 
     private async Task GetUsuario()
     {
-        var isEditParam = new Dictionary<string, string> { ["isEditing"] = true.ToString() };
-
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString($"users/{Username}", isEditParam)
-        );
+        using var response = await HttpClient.GetAsync($"users/{Username}");
 
         if (response.IsSuccessStatusCode)
         {
@@ -64,23 +64,16 @@ partial class Edit
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
 
-                _model = await JsonSerializer.DeserializeAsync<UserEditDTO>(stream, _options) ?? null!;
-                _newModel = new()
-                {
-                    Username = _model.Username,
-                    Nombre = _model.Nombre,
-                    Apellido = _model.Apellido,
-                    IdTurno = _model.IdTurno,
-                    NombreTurno = _model.NombreTurno,
-                    Lockout = _model.Lockout,
-                    ForgotPassword = _model.ForgotPassword,
-                    Roles = _model.Roles
-                };
+                _model = await JsonSerializer.DeserializeAsync<UserDTO>(stream, _options) ?? null!;
             }
             catch (Exception)
             {
                 await UnhandledErrorAlert();
             }
+        }
+        else if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            await NotFoundAlert();
         }
         else
         {
@@ -88,149 +81,64 @@ partial class Edit
         }
     }
 
-    private async Task GetTurnos()
+
+    private void PasswordIconPressed()
     {
-        var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
-
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("turnos", showAllParam)
-        );
-
-        if (response.IsSuccessStatusCode)
+        if (_isPasswordIconShown)
         {
-            try
-            {
-                Stream stream = await response.Content.ReadAsStreamAsync();
-
-                _turnos = await JsonSerializer.DeserializeAsync<IEnumerable<TurnoDTO>>(stream, _options) ?? null!;
-            }
-            catch (Exception)
-            {
-                await UnhandledErrorAlert();
-            }
+            _isPasswordIconShown = false;
+            _passwordInputIcon = "fa fa-eye-slash";
+            _passwordInputType = InputType.Password;
         }
         else
         {
-            await UnhandledErrorAlert();
+            _isPasswordIconShown = true;
+            _passwordInputIcon = "fa fa-eye";
+            _passwordInputType = InputType.Text;
         }
     }
 
-    private async Task GetRoles()
+    private void ConfirmPasswordIconPressed()
     {
-        using var response = await HttpClient.GetAsync("users/getroles");
-
-        if (response.IsSuccessStatusCode)
+        if (_isPasswordConfirmIconShown)
         {
-            try
-            {
-                Stream stream = await response.Content.ReadAsStreamAsync();
-
-                _roles = await JsonSerializer.DeserializeAsync<IEnumerable<string>>(stream, _options) ?? null!;
-            }
-            catch (Exception)
-            {
-                await UnhandledErrorAlert();
-            }
+            _isPasswordConfirmIconShown = false;
+            _passwordConfirmIcon = "fa fa-eye-slash";
+            _passwordConfirmType = InputType.Password;
         }
         else
         {
-            await UnhandledErrorAlert();
+            _isPasswordConfirmIconShown = true;
+            _passwordConfirmIcon = "fa fa-eye";
+            _passwordConfirmType = InputType.Text;
         }
     }
 
-    // CAMBIA EL NOMBRE DEL TURNO QUE SE SELECCIONÓ PARA PODER MOSTRARLO EN LOS ALERTS
-    private void ChangeNombreTurno(int value)
+    private async void OnValidPasswordSubmit(EditContext context)
     {
-        TurnoDTO? turnoSeleccionado = _turnos.SingleOrDefault(t => t.Id == value);
-
-        if (turnoSeleccionado != null)
-        {
-            _newModel.NombreTurno = turnoSeleccionado.Descripcion;
-        }
-
-        StateHasChanged();
+        await ConfirmPasswordAlert();
     }
 
-    private async void OnValidUserSubmit(EditContext context)
+    private async Task ConfirmPasswordAlert()
     {
-        await ConfirmUserAlert();
-    }
-
-    private async Task ConfirmUserAlert()
-    {
-        string confirmButtonColor = Theme.Palette.Error.Value;
-        string cancelButtonColor = Theme.Palette.Secondary.Value;
-
-        bool cambioEnNombre = _newModel.Nombre != _model.Nombre;
-        bool cambioEnApellido = _newModel.Apellido != _model.Apellido;
-        bool cambioEnTurno = _newModel.IdTurno != _model.IdTurno;
-        bool cambioEnEstatus = _newModel.Lockout != _model.Lockout;
-        bool cambioEnRoles = _newModel.Roles != _model.Roles;
-        string cambios = "";
-
-        string nombreLabel = DisplayName.GetDisplayName(_newModel, m => m.Nombre);
-        string apellidoLabel = DisplayName.GetDisplayName(_newModel, m => m.Apellido);
-        string turnoLabel = DisplayName.GetDisplayName(_newModel, m => m.IdTurno);
-        string estatusLabel = DisplayName.GetDisplayName(_newModel, m => m.Lockout);
-        string rolesLabel = DisplayName.GetDisplayName(_newModel, m => m.Roles);
-
-        if (!cambioEnNombre && !cambioEnApellido && !cambioEnTurno && !cambioEnEstatus && !cambioEnRoles)
+        if (_model.ForgotPassword)
         {
-            await NoChangesAlert();
-        }
-        else
-        {
-            if (cambioEnNombre)
-            {
-                cambios += $"<br /><b>{nombreLabel}:</b> De '{_model.Nombre}' a '{_newModel.Nombre}'.";
-            }
+            string confirmButtonColor = Theme.Palette.Error.Value;
+            string cancelButtonColor = Theme.Palette.Secondary.Value;
 
-            if (cambioEnApellido)
-            {
-                cambios += $"<br /><b>{apellidoLabel}:</b> De '{_model.Apellido}' a '{_newModel.Apellido}'.";
-            }
-
-            if (cambioEnTurno)
-            {
-                ChangeNombreTurno(_newModel.IdTurno);
-
-                cambios += $"<br /><b>{turnoLabel}:</b> De '{_model.NombreTurno}' a '{_newModel.NombreTurno}'.";
-            }
-
-            if (cambioEnEstatus)
-            {
-                string estadoOriginal = !_model.Lockout ? "Habilitado" : "Deshabilitado";
-                string estadoNuevo = !_newModel.Lockout ? "Habilitado" : "Deshabilitado";
-
-                cambios += $"<br /><b>{estatusLabel}:</b> De {estadoOriginal} a {estadoNuevo}.";
-            }
-
-            if (cambioEnRoles)
-            {
-                cambios += $"<br /><b>{rolesLabel}:</b>";
-
-                if (!_newModel.Roles.Any())
-                {
-                    string rol = "Intendente";
-
-                    cambios += $"<br /> - {rol}.";
-                }
-                else
-                {
-                    foreach (string rol in _newModel.Roles)
-                    {
-                        cambios += $"<br /> - {rol}.";
-                    }
-                }
-            }
+            string newPasswordLabel = DisplayName.GetDisplayName(_passwordChangeModel, m => m.NewPassword);
+            string newPassword = _passwordChangeModel.NewPassword;
 
             await SwalService.FireAsync(new SweetAlertOptions
             {
                 Icon = SweetAlertIcon.Warning,
                 Title = "¿Desea realizar esta acción?",
                 Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                        Está a punto de modificar las siguientes propiedades:
-                        <br />{cambios}
+                        Está a punto de cambiar la contraseña del usuario: <b>{_model.Username}</b>.
+                        <br />
+                        <br /><b>{newPasswordLabel}:</b> {newPassword}
+                        <br />
+                        <br />Asegúrese de que la nueva contraseña que se asignará sea la correcta.
                     </div>",
                 ShowConfirmButton = true,
                 ConfirmButtonColor = confirmButtonColor,
@@ -261,7 +169,7 @@ partial class Edit
                         {
                             // ACTUALIZAR REGISTRO EN EL SERVIDOR
                             using var response = await HttpClient
-                                .PutAsJsonAsync($"users/{Username}", _newModel);
+                                .PutAsJsonAsync($"users/forgotpassword/{Username}", _passwordChangeModel);
 
                             if (response.IsSuccessStatusCode)
                             {
@@ -287,7 +195,7 @@ partial class Edit
             Icon = SweetAlertIcon.Success,
             Title = "Modificación exitosa",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                    Se ha modificado el usuario '{_newModel.Username}' exitosamente.
+                    Se ha modificado el usuario '{_model.Username}' exitosamente.
                 </div>",
             ShowConfirmButton = true,
             ConfirmButtonColor = confirmButtonColor,
@@ -309,6 +217,24 @@ partial class Edit
             Title = "No hay cambios",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
                     No se detectaron cambios para actualizar. Verifique los cambios que está realizando o contacte a un administrador.
+                </div>",
+            ShowConfirmButton = false,
+            ShowCancelButton = true,
+            CancelButtonColor = confirmButtonColor,
+            CancelButtonText = "Entendido"
+        });
+    }
+
+    private async Task NotFoundAlert()
+    {
+        string confirmButtonColor = Theme.Palette.Primary.Value;
+
+        await SwalService.FireAsync(new SweetAlertOptions
+        {
+            Icon = SweetAlertIcon.Error,
+            Title = "No hay cambios",
+            Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
+                    El usuario que se desea editar no se encontró o no existe.
                 </div>",
             ShowConfirmButton = false,
             ShowCancelButton = true,
