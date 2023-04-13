@@ -7,6 +7,7 @@ using NOAM_ASISTENCIA_V2.Shared.Models;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text.Json;
+using NOAM_ASISTENCIA_V2.Client.Utils;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Usuarios;
 

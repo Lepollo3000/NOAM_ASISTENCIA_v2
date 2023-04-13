@@ -3,7 +3,7 @@ using System.Reflection;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace NOAM_ASISTENCIA_V2.Client.Shared;
+namespace NOAM_ASISTENCIA_V2.Client.Utils;
 
 public static class DisplayName
 {
@@ -12,7 +12,7 @@ public static class DisplayName
         Type type = typeof(TModel);
 
         MemberExpression expression = (MemberExpression)expressionFor.Body;
-        string propertyName = (expression.Member is PropertyInfo) ? expression.Member.Name : null!;
+        string propertyName = expression.Member is PropertyInfo ? expression.Member.Name : null!;
 
         // First look into attributes on a type and it's parents
         DisplayAttribute attr;
@@ -34,6 +34,6 @@ public static class DisplayName
             }
         }
 
-        return (attr != null) ? attr.Name! : String.Empty;
+        return attr != null ? attr.Name! : string.Empty;
     }
 }

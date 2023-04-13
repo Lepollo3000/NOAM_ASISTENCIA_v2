@@ -6,6 +6,7 @@ using NOAM_ASISTENCIA_V2.Client.Shared;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using System.Text.Json;
 using System.Net.Http.Json;
+using NOAM_ASISTENCIA_V2.Client.Utils;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Administrador.Turnos;
 
