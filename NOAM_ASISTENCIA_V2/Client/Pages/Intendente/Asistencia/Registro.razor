@@ -7,22 +7,26 @@
 
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h1 class="h3">Registro de asistencia</h1>
+        <h1 class="h3 text-center">Registro de asistencia</h1>
 
         <div class="row justify-content-center mb-3">
-            <MudButton OnClick="InitLectorQR" Color="Color.Primary" Variant="Variant.Filled"
-                       EndIcon="fa fa-camera">Registrar</MudButton>
+            <div class="text-center">
+                <MudButton OnClick="InitLectorQR" Color="Color.Primary" Variant="Variant.Filled"
+                           EndIcon="fa fa-camera">Registrar</MudButton>
+            </div>
 
-            <BarcodeReader @ref="_scanner" Title=""
-                           StartCameraAutomatically="false"
-                           OnBarcodeReceived="ReceiveQRCode"
-                           ShowStart="false"
-                           ShowReset="false"
-                           ShowResult="false"
-                           ShowToggleTorch="false"
-                           ShowVideoDeviceList="true"
-                           VideoWidth="400"
-                           VideoHeight="400" />
+            <div class="text-center @_scannerVisibility">
+                <BarcodeReader @ref="_scanner" Title=""
+                               StartCameraAutomatically="false"
+                               OnBarcodeReceived="ReceiveQRCodeAsync"
+                               ShowStart="false"
+                               ShowReset="false"
+                               ShowResult="false"
+                               ShowToggleTorch="false"
+                               ShowVideoDeviceList="true"
+                               VideoWidth="400"
+                               VideoHeight="400" />
+            </div>
         </div>
     </div>
 </div>

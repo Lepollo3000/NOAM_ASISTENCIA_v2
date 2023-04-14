@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
+using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
+using System.Linq.Dynamic.Core;
 
 namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
 {
@@ -13,10 +16,12 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
     public class AsistenciasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AsistenciasController(ApplicationDbContext context)
+        public AsistenciasController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/Asistencias
@@ -96,14 +101,80 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
         // POST: api/Asistencias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Asistencia>> PostAsistencia(Asistencia asistencia)
+        public async Task<IActionResult> PostAsistencia(AsistenciaRegistroDTO registro)
         {
             if (_context.Asistencias == null)
             {
-                return Problem("Entity set 'ApplicationDbContext.Asistencias'  is null.");
+                return Problem("Entity set 'ApplicationDbContext.Asistencias' is null.");
             }
 
-            _context.Asistencias.Add(asistencia);
+            ApplicationUser? user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user == null)
+            {
+                return BadRequest("El usuario con el que intenta realizar esta acción no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
+            }
+
+            Servicio? servicio = await _context.Servicios.FindAsync(registro.ServicioId);
+            if (servicio == null)
+            {
+                return BadRequest("El servicio con en el que trata de registrarse no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
+            }
+
+            TimeZoneInfo timeZone;
+            try
+            {
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById(registro.TimeZoneId);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Error interno del servidor. Intente de nuevo más tarde o contacte a un administrador.");
+            }
+
+            // ** TODO A PARTIR DE AQUI DEBE SER MANEJADO CON RESPECTO AL UTC, MUCHO CUIDADO **
+
+            // SE BUSCA UN REGISTRO RECIENTE DE HOY CON FECHA DE SALIDA NULA
+            IEnumerable<Asistencia> asistencias = await _context.Asistencias
+                .Where(a => a.IdUsuario == user.Id)
+                .Where(a => a.IdSucursal == servicio.Id)
+                .OrderByDescending(a => a.FechaEntrada)
+                .ToListAsync();
+
+            bool esEntrada;
+            DateTime fechaActual = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+
+            Asistencia? asistencia = asistencias
+                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date == fechaActual.Date)
+                .Where(a => a.FechaSalida == null)
+                .FirstOrDefault();
+
+            /*Asistencia? asistencia = await _context.Asistencias
+                .Where(a => a.FechaEntrada.Date.Add(timeZone.BaseUtcOffset) ==
+                    DateTime.UtcNow.Date.Add(timeZone.BaseUtcOffset))
+                .Where(a => a.FechaSalida == null)
+                .FirstOrDefaultAsync();*/
+
+            // SI NO HAY REGISTRO CON LO ANTERIORMENTE MENCIONADO, SE CREA
+            if (asistencia == null)
+            {
+                asistencia = new()
+                {
+                    IdUsuario = user.Id,
+                    IdSucursal = servicio.Id,
+                    FechaEntrada = DateTime.UtcNow
+                };
+
+                _context.Asistencias.Add(asistencia);
+
+                esEntrada = true;
+            }
+            else
+            {
+                asistencia.FechaSalida = DateTime.UtcNow;
+
+                _context.Entry(asistencia).State = EntityState.Modified;
+
+                esEntrada = false;
+            }
 
             try
             {
@@ -111,17 +182,18 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
             }
             catch (DbUpdateException)
             {
-                if (AsistenciaExists(asistencia.IdUsuario))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Conflict("Error interno del servidor. Intente de nuevo más tarde o contacte a un administrador.");
             }
 
-            return CreatedAtAction("GetAsistencia", new { id = asistencia.IdUsuario }, asistencia);
+            return CreatedAtAction("GetAsistencia",
+                new { id = asistencia.IdUsuario },
+                new AsistenciaRegistroResultDTO
+                {
+                    Username = user.UserName,
+                    Servicio = servicio.Descripcion,
+                    Fecha = fechaActual,
+                    EsEntrada = esEntrada
+                });
         }
 
         /*// DELETE: api/Asistencias/5

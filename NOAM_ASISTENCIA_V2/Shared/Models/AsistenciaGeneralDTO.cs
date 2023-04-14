@@ -2,7 +2,7 @@
 
 namespace NOAM_ASISTENCIA_V2.Shared.Models;
 
-public class ReporteAsistenciaDTO
+public class AsistenciaGeneralDTO
 {
     private const string _requiredMessage = "Campo requerido";
 
@@ -18,7 +18,4 @@ public class ReporteAsistenciaDTO
     [Required(ErrorMessage = _requiredMessage)]
     [Display(Name = "Horas Laboradas")]
     public double HorasLaboradas { get; set; }
-    [Required(ErrorMessage = _requiredMessage)]
-    [Display(Name = "Fecha")]
-    public DateTime Fecha { get; set; }
 }

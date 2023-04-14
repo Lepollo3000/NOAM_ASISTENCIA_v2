@@ -2,7 +2,7 @@
 
 namespace NOAM_ASISTENCIA_V2.Shared.Models;
 
-public class AsistenciaDTO
+public class AsistenciaPersonalDTO
 {
     [Display(Name = "Usuario")]
     public string Username { get; set; } = null!;

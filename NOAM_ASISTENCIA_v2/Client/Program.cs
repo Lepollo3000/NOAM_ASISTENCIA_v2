@@ -33,7 +33,7 @@ builder.Services.AddOidcAuthentication(options =>
 });
 
 // PREVENT AUTHORIZE VIEW COMPONENT TO WRITE ON CONSOLE
-builder.Logging.AddFilter("Microsoft.AspNetCore.Authorization.*", LogLevel.None);
+//builder.Logging.AddFilter("Microsoft.AspNetCore.Authorization.*", LogLevel.None);
 
 builder.Services.AddMudServices();
 builder.Services.AddSweetAlert2();
