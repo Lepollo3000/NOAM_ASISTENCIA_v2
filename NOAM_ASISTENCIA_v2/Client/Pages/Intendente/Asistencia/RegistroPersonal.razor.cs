@@ -10,7 +10,7 @@ using System.Text.Json;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Intendente.Asistencia;
 
-partial class Registro
+partial class RegistroPersonal
 {
     [CascadingParameter] private MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
@@ -23,6 +23,7 @@ partial class Registro
 
     private BarcodeReader? _scanner = new();
     private string _scannerVisibility = "d-none";
+    private string _instructionsVisibility = "d-block";
 
     protected override async Task OnInitializedAsync()
     {
@@ -34,8 +35,7 @@ partial class Registro
         List<BreadcrumbItem> breadcrumb = new List<BreadcrumbItem>()
         {
             new BreadcrumbItem("Inicio", href: ""),
-            new BreadcrumbItem("Asistencia", href: "asistencia"),
-            new BreadcrumbItem("Registro", href: $"asistencia/registro")
+            new BreadcrumbItem("Registro de Asistencia", href: "asistencia/registro")
         };
 
         await Layout.SetBreadcrumb(breadcrumb);
@@ -45,6 +45,7 @@ partial class Registro
     {
         await _scanner!.StartDecoding();
         _scannerVisibility = "d-block";
+        _instructionsVisibility = "d-none";
 
         StateHasChanged();
     }
@@ -53,6 +54,7 @@ partial class Registro
     {
         await _scanner!.StopDecoding();
         _scannerVisibility = "d-none";
+        _instructionsVisibility = "d-block";
 
         StateHasChanged();
     }
@@ -60,6 +62,8 @@ partial class Registro
     private async Task ReceiveQRCodeAsync(BarcodeReceivedEventArgs args)
     {
         await StopLectorQR();
+
+        await Task.Delay(250); //SI NO SE HACE ESTO PUEDE LLEGARSE A TRIGGEREAR VARIAS VECES
 
         // SE GUARDA EL CODIGO RECIBIDO PARA ENVIARLO
         bool succeeded = int.TryParse(args.BarcodeText, out int codigoQR);
@@ -104,22 +108,36 @@ partial class Registro
                         AsistenciaRegistroResultDTO result = await JsonSerializer
                             .DeserializeAsync<AsistenciaRegistroResultDTO>(stream, _options) ?? null!;
 
-                        await SuccessfulAlert(result);
+                        string htmlMessage = $@"
+                            Se ha registrado la <b>{(result.EsEntrada ? "entrada" : "salida")}</b>
+                            del usuario <b>{result.Username}</b> exitosamente
+                            <br />
+                            <div class=""text-end"">
+                                <br />Fecha: <b>{result.Fecha.ToString("yyyy/MM/dd")}</b>
+                                <br />Hora: <b>{result.Fecha.ToString("HH:mm")}</b>
+                            <div>
+                        ";
+
+                        await SuccessfulAlert(htmlMessage);
                     }
                     catch (Exception)
                     {
-                        await UnhandledErrorAlert("Ocurrió un error inesperado. Intente de nuevo más tarde o consulte a un administrador.");
+                        string error = "Ocurrió un error inesperado. Intente de nuevo más tarde o consulte a un administrador.";
+
+                        await UnhandledErrorAlert(error);
                     }
                 }
                 else
                 {
-                    await UnhandledErrorAlert(await response.Content.ReadAsStringAsync());
+                    string error = await response.Content.ReadAsStringAsync();
+
+                    await UnhandledErrorAlert(error);
                 }
             })
         });
     }
 
-    private async Task SuccessfulAlert(AsistenciaRegistroResultDTO result)
+    private async Task SuccessfulAlert(string message)
     {
         string confirmButtonColor = Theme.Palette.Primary.Value;
 
@@ -128,13 +146,7 @@ partial class Registro
             Icon = SweetAlertIcon.Success,
             Title = "Registro de asistencia exitoso",
             Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
-                    Se ha registrado la <b>{(result.EsEntrada ? "entrada" : "salida")}</b>
-                    del usuario <b>{result.Username}</b> exitosamente
-                    <br />
-                    <div class=""text-end"">
-                        <br />Fecha: <b>{result.Fecha.ToString("yyyy/MM/dd")}</b>
-                        <br />Hora: <b>{result.Fecha.ToString("HH:mm")}</b>
-                    <div>
+                    {message}
                 </div>",
             ShowConfirmButton = true,
             ConfirmButtonColor = confirmButtonColor,

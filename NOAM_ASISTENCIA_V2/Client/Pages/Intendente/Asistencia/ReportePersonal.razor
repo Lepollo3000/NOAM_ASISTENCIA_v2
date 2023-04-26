@@ -1,5 +1,90 @@
-﻿<h3>ReporteAsistencia</h3>
+﻿@page "/asistencia/reporte"
+@attribute [Authorize(Roles = "Intendente")]
 
-@code {
+<PageTitle>Reporte de Asistencia</PageTitle>
 
+@if (_username != null)
+{
+    <h1 class="h3">Reporte de Asistencia para <strong>@_username</strong></h1>
+
+    <div class="row justify-content-between mb-5">
+        <div class="col-md-6">
+            <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaInicial))" PickerClosed="FirstDateHasChanged"
+                       For="@(() => _filters.FechaInicial)" @bind-Date="_filters.FechaInicial"
+                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+        </div>
+
+        <div class="col-md-6">
+            <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))" PickerClosed="LastDateHasChanged"
+                       For="@(() => _filters.FechaFinal)" @bind-Date="_filters.FechaFinal"
+                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+        </div>
+    </div>
+
+    <MudTable ServerData="@(new Func<TableState, Task<TableData<AsistenciaPersonalDTO>>>(GetServerData))"
+          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
+          Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortLabel="sucursal" T="AsistenciaPersonalDTO">
+                    @(DisplayName.GetDisplayName(_model, m => m.NombreSucursal))
+                </MudTableSortLabel>
+            </MudTh>
+
+            <MudTh Class="text-center">
+                <MudTableSortLabel SortLabel="fecha" T="AsistenciaPersonalDTO">
+                    @(DisplayName.GetDisplayName(_model, m => m.FechaEntrada))
+                </MudTableSortLabel>
+            </MudTh>
+
+            <MudTh Class="text-center">
+                Hora de Entrada
+            </MudTh>
+
+            <MudTh Class="text-center">
+                Hora de Salida
+            </MudTh>
+
+            <MudTh Class="text-center">
+                @(DisplayName.GetDisplayName(_model, m => m.HorasLaboradas))
+            </MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>
+                @context.NombreSucursal
+            </MudTd>
+
+            <MudTd Class="text-center">
+                @context.FechaEntrada.ToString("ddd dd MMM yyy")
+            </MudTd>
+
+            <MudTd Class="text-center">
+                @context.FechaEntrada.ToString("HH:mm")
+            </MudTd>
+
+            <MudTd Class="text-center">
+                @if (context.FechaSalida != null)
+                {
+                    @context.FechaSalida.Value.ToString("HH:mm")
+                }
+            </MudTd>
+
+            <MudTd Class="text-center">
+                @context.HorasLaboradas.ToString("##0.##")
+            </MudTd>
+        </RowTemplate>
+
+        <NoRecordsContent>
+            <MudText>No se encontraron registros.</MudText>
+        </NoRecordsContent>
+
+        <LoadingContent>
+            <MudText>Cargando...</MudText>
+        </LoadingContent>
+
+        <PagerContent>
+            <MudTablePager PageSizeOptions="@_pageSizeOption" RowsPerPageString="Mostrar por página" InfoFormat="@_allItemsText" />
+        </PagerContent>
+    </MudTable>
 }

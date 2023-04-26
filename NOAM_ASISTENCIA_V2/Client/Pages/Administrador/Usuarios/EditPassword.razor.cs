@@ -27,7 +27,7 @@ partial class EditPassword
 
     private UserDTO _model = null!;
 
-    private PasswordResetDTO _passwordChangeModel = new();
+    private UserPasswordResetDTO _passwordChangeModel = new();
     private string _passwordInputIcon = "fa fa-eye-slash";
     private InputType _passwordInputType = InputType.Password;
     private bool _isPasswordIconShown;

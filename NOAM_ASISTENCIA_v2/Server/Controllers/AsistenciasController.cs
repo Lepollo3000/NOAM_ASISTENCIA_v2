@@ -2,13 +2,18 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using NOAM_ASISTENCIA_V2.Client.Pages.Intendente.Asistencia;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
+using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
+using NOAM_ASISTENCIA_V2.Shared.RequestFeatures.Asistencia;
+using System.Linq;
 using System.Linq.Dynamic.Core;
 
-namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
+namespace NOAM_ASISTENCIA_V2.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -26,28 +31,118 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
 
         // GET: api/Asistencias
         [HttpGet]
-        public async Task<IActionResult> GetAsistencias([FromQuery] SearchParameters searchParameters)
+        public async Task<IActionResult> GetAsistencias([FromQuery] SearchParameters searchParameters, [FromQuery] AsistenciaFilterParameters filterParameters, bool esReporteGeneral)
         {
             if (_context.Asistencias == null)
             {
                 return NotFound();
             }
 
+            if (filterParameters.TimeZoneId == null)
+            {
+                return BadRequest("Se requiere la zona horaria.");
+            }
+
             IQueryable<Asistencia> originalQuery = _context.Asistencias
                 .Include(a => a.IdUsuarioNavigation)
-                .Include(a => a.IdSucursalNavigation);
+                .Include(a => a.IdSucursalNavigation)
+                .Search(null!)
+                .Sort(searchParameters.OrderBy!);
 
-            originalQuery = Search(originalQuery, null!);
-            originalQuery = Sort(originalQuery, searchParameters.OrderBy!);
+            IEnumerable<Asistencia> originalList = await originalQuery.ToListAsync();
 
-            return Ok(await _context.Asistencias.ToListAsync());
+            TimeZoneInfo timeZone;
+            try
+            {
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById(filterParameters.TimeZoneId);
+            }
+            catch (Exception)
+            {
+                return BadRequest("La zona horaria proporcionada no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
+            }
+
+            DateTime fechaInicial;
+            DateTime fechaFinal;
+
+            if (filterParameters.FechaInicial == null || filterParameters.FechaFinal == null)
+            {
+                DateTime primerDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                DateTime ultimoDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month,
+                    DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month));
+
+                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(primerDiaMes, timeZone);
+                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(ultimoDiaMes, timeZone);
+            }
+            else
+            {
+                if (filterParameters.FechaInicial > filterParameters.FechaFinal)
+                {
+                    return BadRequest("La fecha inicial no debe ser mayor a la fecha final. Realice la corrección pertinente o, si el error persiste, consulte a un administrador.");
+                }
+
+                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filterParameters.FechaInicial.Value.Date, timeZone);
+                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(filterParameters.FechaFinal.Value.Date, timeZone);
+            }
+
+            originalList = originalList
+                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date >= fechaInicial)
+                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date <= fechaFinal);
+
+            if (esReporteGeneral)
+            {
+                IEnumerable<IGrouping<Guid, Asistencia>> groupedList = originalList.GroupBy(a => a.IdUsuario);
+
+                IEnumerable<AsistenciaGeneralDTO?> responseList = groupedList
+                    .Select(g => g
+                        .Select(a => new AsistenciaGeneralDTO
+                        {
+                            Username = a.IdUsuarioNavigation.UserName,
+                            UsuarioNombre = a.IdUsuarioNavigation.Nombre,
+                            UsuarioApellido = a.IdUsuarioNavigation.Apellido,
+                            HorasLaboradas = g.Sum(c => c.FechaSalida == null ? 0
+                                : (c.FechaSalida - c.FechaEntrada).Value.TotalHours)
+                        })
+                    .FirstOrDefault())
+                    .Where(a => a != null).ToList();
+
+                var response = PagedList<AsistenciaGeneralDTO?>.ToPagedList(responseList,
+                    searchParameters.PageNumber, searchParameters.PageSize);
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
+
+                return Ok(response);
+            }
+            else
+            {
+                IEnumerable<AsistenciaPersonalDTO> responseList = originalList
+                    .Select(a => new AsistenciaPersonalDTO
+                    {
+                        Username = a.IdUsuarioNavigation.UserName,
+                        NombreUsuario = a.IdUsuarioNavigation.Nombre,
+                        ApellidoUsuario = a.IdUsuarioNavigation.Apellido,
+                        NombreSucursal = a.IdSucursalNavigation.Descripcion,
+                        FechaEntrada = TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone),
+                        FechaSalida = a.FechaSalida == null ? a.FechaSalida
+                            : TimeZoneInfo.ConvertTimeFromUtc(a.FechaSalida.Value, timeZone),
+                        HorasLaboradas = a.FechaSalida == null ? 0
+                            : (a.FechaSalida - a.FechaEntrada).Value.TotalHours
+                    })
+                    .ToList();
+
+                var response = PagedList<AsistenciaPersonalDTO>.ToPagedList(responseList,
+                    searchParameters.PageNumber, searchParameters.PageSize);
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
+
+                return Ok(response);
+            }
         }
 
-        [HttpGet("[action]")]
+        /*[HttpGet("[action]")]
         public async Task<IActionResult> ReportesAsistencia()
         {
             return NoContent();
-        }
+        }*/
 
         // GET: api/Asistencias/5
         [HttpGet("{id}")]
@@ -216,7 +311,15 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
             return NoContent();
         }*/
 
-        private IQueryable<Asistencia> Search(IQueryable<Asistencia> asistencias, string searchValue)
+        private bool AsistenciaExists(Guid id)
+        {
+            return (_context.Asistencias?.Any(e => e.IdUsuario == id)).GetValueOrDefault();
+        }
+    }
+
+    public static class AsistenciaExtensions
+    {
+        public static IQueryable<Asistencia> Search(this IQueryable<Asistencia> asistencias, string searchValue)
         {
             if (string.IsNullOrEmpty(searchValue))
                 return asistencias;
@@ -224,7 +327,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
             return null!;
         }
 
-        private IQueryable<Asistencia> Sort(IQueryable<Asistencia> asistencias, string orderByString)
+        public static IQueryable<Asistencia> Sort(this IQueryable<Asistencia> asistencias, string orderByString)
         {
             if (string.IsNullOrEmpty(orderByString))
                 return asistencias.OrderByDescending(s => s.FechaEntrada);
@@ -238,15 +341,25 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
 
             return orderBy switch
             {
-                "fechaentrada" when orderDirection == "ascending"
+                "fecha" when orderDirection == "ascending"
                     => asistencias.OrderBy(s => s.FechaEntrada),
-                "fechaentrada" when orderDirection == "descending"
+                "fecha" when orderDirection == "descending"
                     => asistencias.OrderByDescending(s => s.FechaEntrada),
 
                 "username" when orderDirection == "ascending"
                     => asistencias.OrderBy(s => s.IdUsuarioNavigation.UserName),
                 "username" when orderDirection == "descending"
                     => asistencias.OrderByDescending(s => s.IdUsuarioNavigation.UserName),
+
+                "nombre" when orderDirection == "ascending"
+                    => asistencias.OrderBy(s => s.IdUsuarioNavigation.Nombre),
+                "nombre" when orderDirection == "descending"
+                    => asistencias.OrderByDescending(s => s.IdUsuarioNavigation.Nombre),
+
+                "apellido" when orderDirection == "ascending"
+                    => asistencias.OrderBy(s => s.IdUsuarioNavigation.Apellido),
+                "apellido" when orderDirection == "descending"
+                    => asistencias.OrderByDescending(s => s.IdUsuarioNavigation.Apellido),
 
                 "sucursal" when orderDirection == "ascending"
                     => asistencias.OrderBy(s => s.IdUsuarioNavigation.UserName),
@@ -256,10 +369,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Intendente
                 _ => asistencias.OrderByDescending(s => s.FechaEntrada),
             };
         }
-
-        private bool AsistenciaExists(Guid id)
-        {
-            return (_context.Asistencias?.Any(e => e.IdUsuario == id)).GetValueOrDefault();
-        }
     }
+
 }

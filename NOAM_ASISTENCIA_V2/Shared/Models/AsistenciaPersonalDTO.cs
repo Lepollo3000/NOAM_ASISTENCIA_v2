@@ -12,8 +12,9 @@ public class AsistenciaPersonalDTO
     public string ApellidoUsuario { get; set; } = null!;
     [Display(Name = "Sucursal")]
     public string NombreSucursal { get; set; } = null!;
-    [Display(Name = "Fecha de Entrada")]
+    [Display(Name = "Fecha")]
     public DateTime FechaEntrada { get; set; }
-    [Display(Name = "Fecha de Salida")]
     public DateTime? FechaSalida { get; set; }
+    [Display(Name = "Horas Laboradas")]
+    public double HorasLaboradas { get; set; }
 }

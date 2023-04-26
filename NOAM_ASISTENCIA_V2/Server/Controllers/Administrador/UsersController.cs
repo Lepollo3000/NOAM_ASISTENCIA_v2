@@ -267,7 +267,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
         }
 
         [HttpPut("[action]/{name}")]
-        public async Task<IActionResult> ForgotPassword(string name, PasswordResetDTO passwordChange)
+        public async Task<IActionResult> ForgotPassword(string name, UserPasswordResetDTO passwordChange)
         {
             if (string.IsNullOrEmpty(name))
             {

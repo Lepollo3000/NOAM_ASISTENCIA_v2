@@ -24,7 +24,7 @@ partial class Create
 
     private UserRegisterDTO _model = new() { IdTurno = 1 };
 
-    private PasswordResetDTO _passwordChangeModel = new();
+    private UserPasswordResetDTO _passwordChangeModel = new();
     private string _passwordInputIcon = "fa fa-eye-slash";
     private InputType _passwordInputType = InputType.Password;
     private bool _isPasswordIconShown;

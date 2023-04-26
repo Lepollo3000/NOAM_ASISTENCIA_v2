@@ -1,2 +1,87 @@
-﻿@page "/asistencia/reporte"
+﻿@page "/asistencia/reportes"
 @attribute [Authorize(Roles = "Gerente")]
+
+<PageTitle>Reporte de Asistencia</PageTitle>
+
+<h1 class="h3">Reporte de Asistencia para @Username</h1>
+
+<div class="row justify-content-between mb-5">
+    <div class="col-md-6">
+        <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaInicial))" PickerClosed="FirstDateHasChanged"
+                       For="@(() => _filters.FechaInicial)" @bind-Date="_filters.FechaInicial"
+                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+    </div>
+
+    <div class="col-md-6">
+        <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))" PickerClosed="LastDateHasChanged"
+                       For="@(() => _filters.FechaFinal)" @bind-Date="_filters.FechaFinal"
+                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+    </div>
+</div>
+
+<MudTable ServerData="@(new Func<TableState, Task<TableData<AsistenciaGeneralDTO>>>(GetServerData))"
+          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
+          Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortLabel="username" T="AsistenciaGeneralDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.Username))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>
+            <MudTableSortLabel SortLabel="nombre" T="AsistenciaGeneralDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.UsuarioNombre))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>
+            <MudTableSortLabel SortLabel="apellido" T="AsistenciaGeneralDTO">
+                @(DisplayName.GetDisplayName(_model, m => m.UsuarioApellido))
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh Class="text-center">
+            @(DisplayName.GetDisplayName(_model, m => m.HorasLaboradas))
+        </MudTh>
+
+        <MudTh></MudTh>
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd>
+            @context.Username
+        </MudTd>
+
+        <MudTd>
+            @context.UsuarioNombre
+        </MudTd>
+
+        <MudTd>
+            @context.UsuarioApellido
+        </MudTd>
+
+        <MudTd Class="text-center">
+            @context.HorasLaboradas.ToString("##0.##")
+        </MudTd>
+
+        <MudTd Class="text-center">
+            <MudButton Href="@($"asistencia/reporte/{context.Username}")" Color="Color.Primary" EndIcon="fa fa-info-circle"
+                       Variant="Variant.Filled">
+                Editar
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+
+    <NoRecordsContent>
+        <MudText>No se encontraron registros.</MudText>
+    </NoRecordsContent>
+
+    <LoadingContent>
+        <MudText>Cargando...</MudText>
+    </LoadingContent>
+
+    <PagerContent>
+        <MudTablePager PageSizeOptions="@_pageSizeOption" RowsPerPageString="Mostrar por página" InfoFormat="@_allItemsText" />
+    </PagerContent>
+</MudTable>
