@@ -44,10 +44,10 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
 
             IQueryable<Asistencia> originalQuery = _context.Asistencias
-                .Include(a => a.IdUsuarioNavigation)
                 .Include(a => a.IdSucursalNavigation)
-                .Search(null!)
-                .Sort(parameters.OrderBy!);
+                .Include(a => a.IdUsuarioNavigation)
+                .Sort(parameters.OrderBy!)
+                .Search(null!);
 
             // SI NO ES REPORTE GENERAL, HAY QUE FILTAR LOS REGISTROS POR EL USUARIO INGRESADO
             if (!esReporteGeneral)
@@ -168,12 +168,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
         }
 
-        /*[HttpGet("[action]")]
-        public async Task<IActionResult> ReportesAsistencia()
-        {
-            return NoContent();
-        }*/
-
         // GET: api/Asistencias/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Asistencia>> GetAsistencia(Guid id)
@@ -271,12 +265,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date == fechaActual.Date)
                 .Where(a => a.FechaSalida == null)
                 .FirstOrDefault();
-
-            /*Asistencia? asistencia = await _context.Asistencias
-                .Where(a => a.FechaEntrada.Date.Add(timeZone.BaseUtcOffset) ==
-                    DateTime.UtcNow.Date.Add(timeZone.BaseUtcOffset))
-                .Where(a => a.FechaSalida == null)
-                .FirstOrDefaultAsync();*/
 
             // SI NO HAY REGISTRO CON LO ANTERIORMENTE MENCIONADO, SE CREA
             if (asistencia == null)

@@ -45,15 +45,20 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             }
             else
             {
-                originalQuery = originalQuery.Where(user => user.UserName != HttpContext.User.Identity!.Name);
-                originalQuery = Search(originalQuery, null!);
-                originalQuery = Sort(originalQuery, searchParameters.OrderBy!);
+                originalQuery = originalQuery
+                    .Where(user => user.UserName != HttpContext.User.Identity!.Name)
+                    .Include(user => user.IdTurnoNavigation)
+                    .Sort(searchParameters.OrderBy!)
+                    .Search(null!);
 
-                IEnumerable<ApplicationUser> responseList = await originalQuery
-                    .Include(user => user.IdTurnoNavigation).ToListAsync();
+                // SE ENLISTAN LOS USUARIOS PARA PODER SACAR LOS ROLES DE CADA UNO
+                List<ApplicationUser> responseList = await originalQuery.ToListAsync();
 
-                IEnumerable<UserDTO> responseQuery = (IEnumerable<UserDTO>)responseList
-                    .Select(async user => new UserDTO
+                // SE HACE UN BUCLE POR CADA USUARIO PARA TRAER SUS ROLES
+                List<UserDTO> responseQuery = new();
+                foreach (ApplicationUser user in responseList)
+                {
+                    responseQuery.Add(new UserDTO
                     {
                         Username = user.UserName,
                         Nombre = user.Nombre,
@@ -64,6 +69,21 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                         ForgotPassword = user.ForgotPassword,
                         Roles = await _userManager.GetRolesAsync(user)
                     });
+                }
+                /*responseList.ForEach(async user =>
+                {
+                    responseQuery.Add(new UserDTO
+                    {
+                        Username = user.UserName,
+                        Nombre = user.Nombre,
+                        Apellido = user.Apellido,
+                        IdTurno = user.IdTurno,
+                        NombreTurno = user.IdTurnoNavigation.Descripcion,
+                        Lockout = user.Lockout,
+                        ForgotPassword = user.ForgotPassword,
+                        Roles = await _userManager.GetRolesAsync(user)
+                    });
+                });*/
 
                 var response = PagedList<UserDTO>.ToPagedList(responseQuery, searchParameters.PageNumber,
                     searchParameters.PageSize);
@@ -325,7 +345,15 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return NoContent();
         }
 
-        private IQueryable<ApplicationUser> Search(IQueryable<ApplicationUser> users, string searchValue)
+        private bool UserExists(string name)
+        {
+            return (_context.Users?.Any(e => e.UserName == name)).GetValueOrDefault();
+        }
+    }
+
+    public static class UsersExtensions
+    {
+        public static IQueryable<ApplicationUser> Search(this IQueryable<ApplicationUser> users, string searchValue)
         {
             if (string.IsNullOrEmpty(searchValue))
                 return users;
@@ -333,7 +361,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return null!;
         }
 
-        private IQueryable<ApplicationUser> Sort(IQueryable<ApplicationUser> users, string orderByString)
+        public static IQueryable<ApplicationUser> Sort(this IQueryable<ApplicationUser> users, string orderByString)
         {
             if (string.IsNullOrEmpty(orderByString))
                 return users.OrderBy(s => s.Id);
@@ -365,10 +393,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 _ => users.OrderBy(s => s.Id),
             };
         }
-
-        private bool UserExists(string name)
-        {
-            return (_context.Users?.Any(e => e.UserName == name)).GetValueOrDefault();
-        }
     }
+
 }
