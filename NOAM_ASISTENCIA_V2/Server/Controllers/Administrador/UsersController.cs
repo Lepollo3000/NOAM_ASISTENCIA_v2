@@ -49,9 +49,11 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 originalQuery = Search(originalQuery, null!);
                 originalQuery = Sort(originalQuery, searchParameters.OrderBy!);
 
-                IQueryable<UserDTO> responseQuery = originalQuery
-                    .Include(user => user.IdTurnoNavigation)
-                    .Select(user => new UserDTO
+                IEnumerable<ApplicationUser> responseList = await originalQuery
+                    .Include(user => user.IdTurnoNavigation).ToListAsync();
+
+                IEnumerable<UserDTO> responseQuery = (IEnumerable<UserDTO>)responseList
+                    .Select(async user => new UserDTO
                     {
                         Username = user.UserName,
                         Nombre = user.Nombre,
@@ -59,10 +61,12 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                         IdTurno = user.IdTurno,
                         NombreTurno = user.IdTurnoNavigation.Descripcion,
                         Lockout = user.Lockout,
-                        ForgotPassword = user.ForgotPassword
+                        ForgotPassword = user.ForgotPassword,
+                        Roles = await _userManager.GetRolesAsync(user)
                     });
 
-                var response = PagedList<UserDTO>.ToPagedList(await responseQuery.ToListAsync(), searchParameters.PageNumber, searchParameters.PageSize);
+                var response = PagedList<UserDTO>.ToPagedList(responseQuery, searchParameters.PageNumber,
+                    searchParameters.PageSize);
 
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -240,18 +244,22 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 }
             }
 
-            await _userManager.RemoveFromRoleAsync(user, "Intendente");
-            await _userManager.RemoveFromRoleAsync(user, "Gerente");
-            await _userManager.RemoveFromRoleAsync(user, "Administrador");
-
             IdentityResult rolesAddedResult;
 
             if (userDTO.Roles.Any())
             {
+                await _userManager.RemoveFromRoleAsync(user, "Intendente");
+                await _userManager.RemoveFromRoleAsync(user, "Gerente");
+                await _userManager.RemoveFromRoleAsync(user, "Administrador");
+
                 rolesAddedResult = await _userManager.AddToRolesAsync(user, userDTO.Roles);
             }
             else
             {
+                await _userManager.RemoveFromRoleAsync(user, "Intendente");
+                await _userManager.RemoveFromRoleAsync(user, "Gerente");
+                await _userManager.RemoveFromRoleAsync(user, "Administrador");
+
                 rolesAddedResult = await _userManager.AddToRoleAsync(user, "Intendente");
             }
 

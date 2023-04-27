@@ -26,4 +26,7 @@ public class UserDTO
     [Required(ErrorMessage = _requiredMessage)]
     [Display(Name = "Olvidó su contraseña")]
     public bool ForgotPassword { get; set; }
+    [Required(ErrorMessage = _requiredMessage)]
+    [Display(Name = "Roles")]
+    public IEnumerable<string> Roles { get; set; } = null!;
 }

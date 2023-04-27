@@ -31,14 +31,14 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
         // GET: api/Asistencias
         [HttpGet]
-        public async Task<IActionResult> GetAsistencias([FromQuery] SearchParameters searchParameters, [FromQuery] AsistenciaFilterParameters filterParameters, bool esReporteGeneral)
+        public async Task<IActionResult> GetAsistencias([FromQuery] SearchParameters parameters, [FromQuery] AsistenciaFilterParameters filters, bool esReporteGeneral)
         {
             if (_context.Asistencias == null)
             {
                 return NotFound();
             }
 
-            if (filterParameters.TimeZoneId == null)
+            if (filters.TimeZoneId == null)
             {
                 return BadRequest("Se requiere la zona horaria.");
             }
@@ -47,14 +47,35 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 .Include(a => a.IdUsuarioNavigation)
                 .Include(a => a.IdSucursalNavigation)
                 .Search(null!)
-                .Sort(searchParameters.OrderBy!);
+                .Sort(parameters.OrderBy!);
 
-            IEnumerable<Asistencia> originalList = await originalQuery.ToListAsync();
+            // SI NO ES REPORTE GENERAL, HAY QUE FILTAR LOS REGISTROS POR EL USUARIO INGRESADO
+            if (!esReporteGeneral)
+            {
+                ApplicationUser? user;
 
+                if (filters.Username == null)
+                {
+                    user = await _userManager.GetUserAsync(HttpContext.User);
+                }
+                else
+                {
+                    user = await _userManager.FindByNameAsync(filters.Username);
+                }
+
+                if (user == null)
+                {
+                    return BadRequest("El usuario no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
+                }
+
+                originalQuery = originalQuery.Where(a => a.IdUsuario == user.Id);
+            }
+
+            // SE OBTIENE LA ZONA HORARIA PROPORCIONADA
             TimeZoneInfo timeZone;
             try
             {
-                timeZone = TimeZoneInfo.FindSystemTimeZoneById(filterParameters.TimeZoneId);
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById(filters.TimeZoneId);
             }
             catch (Exception)
             {
@@ -64,8 +85,10 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             DateTime fechaInicial;
             DateTime fechaFinal;
 
-            if (filterParameters.FechaInicial == null || filterParameters.FechaFinal == null)
+            // SE REVISA SI ALGÚN PARÁMETRO DE FECHA ES NULO
+            if (filters.FechaInicial == null || filters.FechaFinal == null)
             {
+                // POR PREDETERMINADO SERÁN EL PRIMER Y ÚLTIMO DÍA DEL MES
                 DateTime primerDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
                 DateTime ultimoDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month,
                     DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month));
@@ -75,38 +98,44 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
             else
             {
-                if (filterParameters.FechaInicial > filterParameters.FechaFinal)
+                // SE REVISA QUE LA FECHA INICIAL NO SEA MAYOR A LA FECHA FINAL
+                if (filters.FechaInicial > filters.FechaFinal)
                 {
                     return BadRequest("La fecha inicial no debe ser mayor a la fecha final. Realice la corrección pertinente o, si el error persiste, consulte a un administrador.");
                 }
 
-                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filterParameters.FechaInicial.Value.Date, timeZone);
-                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(filterParameters.FechaFinal.Value.Date, timeZone);
+                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaInicial.Value.Date, timeZone);
+                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaFinal.Value.Date, timeZone);
             }
 
+            // SE ENLISTAN LOS REGISTROS, YA QUE NO SE PUEDEN TRADUCIR LAS TRANSFORMACIONES DE FECHAS
+            IEnumerable<Asistencia> originalList = await originalQuery.ToListAsync();
+
+            // SE FILTRAN LOS REGISTROS POR LA FECHA TRANSFORMADA, PARA EVITAR PROBLEMAS DE SINCRONIZACIÓN
+            // POR HUSOS HORARIOS DIFERENTES
             originalList = originalList
                 .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date >= fechaInicial)
                 .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date <= fechaFinal);
 
+            // SE REVISA SI LOS REPORTES SOLICITADOS SON GENERALES O NO
             if (esReporteGeneral)
             {
-                IEnumerable<IGrouping<Guid, Asistencia>> groupedList = originalList.GroupBy(a => a.IdUsuario);
-
-                IEnumerable<AsistenciaGeneralDTO?> responseList = groupedList
-                    .Select(g => g
-                        .Select(a => new AsistenciaGeneralDTO
-                        {
-                            Username = a.IdUsuarioNavigation.UserName,
-                            UsuarioNombre = a.IdUsuarioNavigation.Nombre,
-                            UsuarioApellido = a.IdUsuarioNavigation.Apellido,
-                            HorasLaboradas = g.Sum(c => c.FechaSalida == null ? 0
-                                : (c.FechaSalida - c.FechaEntrada).Value.TotalHours)
-                        })
+                // SE GENERAN LOS REPORTES GENERALES AGRUPADOS POR USUARIO
+                IEnumerable<AsistenciaGeneralDTO?> responseList = originalList
+                    .GroupBy(a => a.IdUsuario)
+                    .Select(g => g.Select(a => new AsistenciaGeneralDTO
+                    {
+                        Username = a.IdUsuarioNavigation.UserName,
+                        UsuarioNombre = a.IdUsuarioNavigation.Nombre,
+                        UsuarioApellido = a.IdUsuarioNavigation.Apellido,
+                        HorasLaboradas = g.Sum(c => c.FechaSalida == null ? 0
+                            : (c.FechaSalida - c.FechaEntrada).Value.TotalHours)
+                    })
                     .FirstOrDefault())
                     .Where(a => a != null).ToList();
 
                 var response = PagedList<AsistenciaGeneralDTO?>.ToPagedList(responseList,
-                    searchParameters.PageNumber, searchParameters.PageSize);
+                    parameters.PageNumber, parameters.PageSize);
 
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -114,6 +143,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
             else
             {
+                // SE GENERAN LOS REPORTES DEL USUARIO ESPECIFICADO
                 IEnumerable<AsistenciaPersonalDTO> responseList = originalList
                     .Select(a => new AsistenciaPersonalDTO
                     {
@@ -130,7 +160,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                     .ToList();
 
                 var response = PagedList<AsistenciaPersonalDTO>.ToPagedList(responseList,
-                    searchParameters.PageNumber, searchParameters.PageSize);
+                    parameters.PageNumber, parameters.PageSize);
 
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
