@@ -32,10 +32,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 return NotFound();
             }
 
-            IQueryable<Servicio> originalQuery = _context.Servicios;
-
-            originalQuery = Search(originalQuery, null!);
-            originalQuery = Sort(originalQuery, productParameters.OrderBy!);
+            IQueryable<Servicio> originalQuery = _context.Servicios
+                .Sort(productParameters.OrderBy!)
+                .Search(null!);
 
             IQueryable<ServicioDTO> responseQuery = originalQuery
                 .Select(servicio => new ServicioDTO
@@ -146,7 +145,15 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return NoContent();
         }*/
 
-        private IQueryable<Servicio> Search(IQueryable<Servicio> servicios, string searchValue)
+        private bool SucursalServicioExists(int id)
+        {
+            return (_context.Servicios?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+    }
+
+    public static class ServiciosExtensions
+    {
+        public static IQueryable<Servicio> Search(this IQueryable<Servicio> servicios, string searchValue)
         {
             if (string.IsNullOrEmpty(searchValue))
                 return servicios;
@@ -154,7 +161,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return null!;
         }
 
-        private IQueryable<Servicio> Sort(IQueryable<Servicio> servicios, string orderByString)
+        public static IQueryable<Servicio> Sort(this IQueryable<Servicio> servicios, string orderByString)
         {
             if (string.IsNullOrEmpty(orderByString))
                 return servicios.OrderBy(s => s.Id);
@@ -174,11 +181,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                     => servicios.OrderByDescending(s => s.Descripcion),
                 _ => servicios.OrderBy(s => s.Id),
             };
-        }
-
-        private bool SucursalServicioExists(int id)
-        {
-            return (_context.Servicios?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

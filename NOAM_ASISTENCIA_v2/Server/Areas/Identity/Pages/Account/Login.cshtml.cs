@@ -14,11 +14,13 @@ namespace NOAM_ASISTENCIA_V2.Server.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -104,6 +106,22 @@ namespace NOAM_ASISTENCIA_V2.Server.Areas.Identity.Pages.Account
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+                ApplicationUser user = await _userManager.FindByNameAsync(Input.Username);
+
+                // SI NO SE ENCUENTRA EL USUARIO
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "El usuario no se encontró o no existe.");
+                    return Page();
+                }
+
+                // SI EL USUARIO ESTÁ DESHABILITADO
+                if (user.Lockout)
+                {
+                    ModelState.AddModelError(string.Empty, "El usuario no tiene permitido iniciar sesión. Consulte a un administrador.");
+                    return Page();
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(Input.Username, Input.Password, Input.RememberMe, lockoutOnFailure: false);
 
                 if (result.Succeeded)
@@ -122,7 +140,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "Contraseña incorrecta.");
                     return Page();
                 }
             }

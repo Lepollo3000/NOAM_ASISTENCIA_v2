@@ -63,7 +63,7 @@ partial class RegistroPersonal
     {
         await StopLectorQR();
 
-        await Task.Delay(250); //SI NO SE HACE ESTO PUEDE LLEGARSE A TRIGGEREAR VARIAS VECES
+        await Task.Delay(250); //SI NO SE HACE ESTO PUEDE LLEGARSE A TRIGGEREAR EL PROCESO VARIAS VECES
 
         // SE GUARDA EL CODIGO RECIBIDO PARA ENVIARLO
         bool succeeded = int.TryParse(args.BarcodeText, out int codigoQR);
@@ -71,6 +71,10 @@ partial class RegistroPersonal
         if (succeeded)
         {
             await LoadingAlert(codigoQR);
+        }
+        else
+        {
+            await UnhandledErrorAlert("El código QR no ha sido reconocido. Vuelva a intentarlo o consulte a un administrdor.");
         }
     }
 
@@ -109,8 +113,9 @@ partial class RegistroPersonal
                             .DeserializeAsync<AsistenciaRegistroResultDTO>(stream, _options) ?? null!;
 
                         string htmlMessage = $@"
-                            Se ha registrado la <b>{(result.EsEntrada ? "entrada" : "salida")}</b>
-                            del usuario <b>{result.Username}</b> exitosamente
+                            Se ha registrado la <b>{(result.EsEntrada ? "entrada" : "salida")}
+                            </b>del usuario <b>{result.Username}</b> exitosamente
+                            </b>dentro de <b>{result.Servicio}</b> exitosamente
                             <br />
                             <div class=""text-end"">
                                 <br />Fecha: <b>{result.Fecha.ToString("yyyy/MM/dd")}</b>

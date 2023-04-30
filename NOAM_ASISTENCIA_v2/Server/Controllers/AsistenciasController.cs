@@ -238,6 +238,11 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             {
                 return BadRequest("El servicio con en el que trata de registrarse no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
             }
+            // SI EL SERVICIO ESTA DESHABILITADO
+            if (!servicio.Habilitado)
+            {
+                return BadRequest("No se permiten registros de asistencia para este servicio. Consulte a un administrador.");
+            }
 
             TimeZoneInfo timeZone;
             try

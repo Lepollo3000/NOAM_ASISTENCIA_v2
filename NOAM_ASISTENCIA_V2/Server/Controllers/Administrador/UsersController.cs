@@ -54,7 +54,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                 // SE ENLISTAN LOS USUARIOS PARA PODER SACAR LOS ROLES DE CADA UNO
                 List<ApplicationUser> responseList = await originalQuery.ToListAsync();
 
-                // SE HACE UN BUCLE POR CADA USUARIO PARA TRAER SUS ROLES
+                // SE HACE UN BUCLE POR CADA USUARIO PARA OBTENER SUS RESPECTIVOS ROLES
                 List<UserDTO> responseQuery = new();
                 foreach (ApplicationUser user in responseList)
                 {
@@ -70,20 +70,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                         Roles = await _userManager.GetRolesAsync(user)
                     });
                 }
-                /*responseList.ForEach(async user =>
-                {
-                    responseQuery.Add(new UserDTO
-                    {
-                        Username = user.UserName,
-                        Nombre = user.Nombre,
-                        Apellido = user.Apellido,
-                        IdTurno = user.IdTurno,
-                        NombreTurno = user.IdTurnoNavigation.Descripcion,
-                        Lockout = user.Lockout,
-                        ForgotPassword = user.ForgotPassword,
-                        Roles = await _userManager.GetRolesAsync(user)
-                    });
-                });*/
 
                 var response = PagedList<UserDTO>.ToPagedList(responseQuery, searchParameters.PageNumber,
                     searchParameters.PageSize);

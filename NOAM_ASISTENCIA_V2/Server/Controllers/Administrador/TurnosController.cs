@@ -35,23 +35,29 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 
             if (showAll)
             {
+                // NO MOSTRAR TURNOS DESHABILITADOS
+                originalQuery = originalQuery.Where(t => t.Habilitado);
+
                 return Ok(originalQuery.ToList());
             }
             else
             {
-                originalQuery = originalQuery.Where(t => t.Id != 1);
-                originalQuery = Search(originalQuery, null!);
-                originalQuery = Sort(originalQuery, searchParameters.OrderBy!);
+                originalQuery = originalQuery
+                    .Where(t => t.Id != 1)
+                    .Sort(searchParameters.OrderBy!)
+                    .Search(null!);
 
-                IQueryable<TurnoDTO> responseQuery = originalQuery
+                IEnumerable<TurnoDTO> responseQuery = await originalQuery
                     .Select(turno => new TurnoDTO
                     {
                         Id = turno.Id,
                         Descripcion = turno.Descripcion,
                         Habilitado = turno.Habilitado
-                    });
+                    })
+                    .ToListAsync();
 
-                var response = PagedList<TurnoDTO>.ToPagedList(await responseQuery.ToListAsync(), searchParameters.PageNumber, searchParameters.PageSize);
+                var response = PagedList<TurnoDTO>.ToPagedList(responseQuery, searchParameters.PageNumber,
+                    searchParameters.PageSize);
 
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
@@ -155,7 +161,15 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return NoContent();
         }*/
 
-        private IQueryable<Turno> Search(IQueryable<Turno> servicios, string searchValue)
+        private bool TurnoExists(int id)
+        {
+            return (_context.Turnos?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+    }
+
+    public static class TurnosExtensions
+    {
+        public static IQueryable<Turno> Search(this IQueryable<Turno> servicios, string searchValue)
         {
             if (string.IsNullOrEmpty(searchValue))
                 return servicios;
@@ -163,7 +177,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
             return null!;
         }
 
-        private IQueryable<Turno> Sort(IQueryable<Turno> servicios, string orderByString)
+        public static IQueryable<Turno> Sort(this IQueryable<Turno> servicios, string orderByString)
         {
             if (string.IsNullOrEmpty(orderByString))
                 return servicios.OrderBy(s => s.Id);
@@ -183,11 +197,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
                     => servicios.OrderByDescending(s => s.Descripcion),
                 _ => servicios.OrderBy(s => s.Id),
             };
-        }
-
-        private bool TurnoExists(int id)
-        {
-            return (_context.Turnos?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
