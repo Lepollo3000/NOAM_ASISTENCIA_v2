@@ -34,6 +34,8 @@
         <MudTh></MudTh>
 
         <MudTh></MudTh>
+
+        <MudTh></MudTh>
     </HeaderContent>
 
     <RowTemplate>
@@ -72,6 +74,13 @@
             <MudButton Href="@($"servicios/edit/{context.Id}")" Color="Color.Primary" EndIcon="fa fa-edit"
                        Variant="Variant.Filled">
                 Editar
+            </MudButton>
+        </MudTd>
+
+        <MudTd Class="text-center">
+            <MudButton Color="Color.Primary" EndIcon="fa fa-qrcode" Variant="Variant.Filled"
+                       OnClick="async () => await DownloadQRCode(context.Id, context.CodigoId)">
+                Obtener QR
             </MudButton>
         </MudTd>
     </RowTemplate>
