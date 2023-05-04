@@ -23,7 +23,7 @@ partial class Index
     private readonly JsonSerializerOptions _options = new() { PropertyNameCaseInsensitive = true };
     private readonly int[] _pageSizeOption = { 5, 10, 15, 20 };
 
-    private int _pageSize = 5;
+    private int _pageSize = 10;
     private TurnoDTO _model = new();
     private SearchParameters _searchParameters = new();
     private MudTable<TurnoDTO> _table = new();
