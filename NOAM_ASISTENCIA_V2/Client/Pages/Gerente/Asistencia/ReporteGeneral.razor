@@ -6,16 +6,21 @@
 <h1 class="h3">Reporte de Asistencia para @Username</h1>
 
 <div class="row justify-content-between mb-5">
-    <div class="col-md-6">
+    <div class="col">
         <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaInicial))" PickerClosed="FirstDateHasChanged"
                        For="@(() => _filters.FechaInicial)" @bind-Date="_filters.FechaInicial"
                        AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
     </div>
 
-    <div class="col-md-6">
+    <div class="col">
         <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))" PickerClosed="LastDateHasChanged"
                        For="@(() => _filters.FechaFinal)" @bind-Date="_filters.FechaFinal"
                        AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+    </div>
+
+    <div class="col justify-content-center align-content-center">
+        <MudButton OnClick="() => GetReporte()" Color="Color.Success" Variant="Variant.Filled"
+                   StartIcon="fa fa-file-excel">Importar a Excel</MudButton>
     </div>
 </div>
 

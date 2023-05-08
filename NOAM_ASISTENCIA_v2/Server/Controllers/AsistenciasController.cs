@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using IronXL;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,11 +23,13 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IWebHostEnvironment _environment;
 
-        public AsistenciasController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AsistenciasController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment environment)
         {
             _context = context;
             _userManager = userManager;
+            _environment = environment;
         }
 
         // GET: api/Asistencias
@@ -166,6 +169,124 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
                 return Ok(response);
             }
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> ReporteAsistencia([FromQuery] SearchParameters parameters, [FromQuery] AsistenciaFilterParameters filters)
+        {
+            if (_context.Asistencias == null)
+            {
+                return NotFound();
+            }
+
+            if (filters.TimeZoneId == null)
+            {
+                return BadRequest("Se requiere la zona horaria.");
+            }
+
+            IQueryable<Asistencia> originalQuery = _context.Asistencias
+                .Include(a => a.IdSucursalNavigation)
+                .Include(a => a.IdUsuarioNavigation)
+                .Sort(parameters.OrderBy!)
+                .Search(null!);
+
+            // SE OBTIENE LA ZONA HORARIA PROPORCIONADA
+            TimeZoneInfo timeZone;
+            try
+            {
+                timeZone = TimeZoneInfo.FindSystemTimeZoneById(filters.TimeZoneId);
+            }
+            catch (Exception)
+            {
+                return BadRequest("La zona horaria proporcionada no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
+            }
+
+            DateTime fechaInicial;
+            DateTime fechaFinal;
+
+            // SE REVISA SI ALGÚN PARÁMETRO DE FECHA ES NULO
+            if (filters.FechaInicial == null || filters.FechaFinal == null)
+            {
+                // POR PREDETERMINADO SERÁN EL PRIMER Y ÚLTIMO DÍA DEL MES
+                DateTime primerDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                DateTime ultimoDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month,
+                    DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month));
+
+                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(primerDiaMes, timeZone);
+                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(ultimoDiaMes, timeZone);
+            }
+            else
+            {
+                // SE REVISA QUE LA FECHA INICIAL NO SEA MAYOR A LA FECHA FINAL
+                if (filters.FechaInicial > filters.FechaFinal)
+                {
+                    return BadRequest("La fecha inicial no debe ser mayor a la fecha final. Realice la corrección pertinente o, si el error persiste, consulte a un administrador.");
+                }
+
+                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaInicial.Value.Date, timeZone);
+                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaFinal.Value.Date, timeZone);
+            }
+
+            // SE ENLISTAN LOS REGISTROS, YA QUE NO SE PUEDEN TRADUCIR LAS TRANSFORMACIONES DE FECHAS
+            IEnumerable<Asistencia> originalList = await originalQuery.ToListAsync();
+
+            // SE FILTRAN LOS REGISTROS POR LA FECHA TRANSFORMADA, PARA EVITAR PROBLEMAS DE SINCRONIZACIÓN
+            // POR HUSOS HORARIOS DIFERENTES
+            originalList = originalList
+                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date >= fechaInicial)
+                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date <= fechaFinal);
+
+            // SE GENERAN LOS REPORTES GENERALES AGRUPADOS POR USUARIO
+            IEnumerable<IEnumerable<AsistenciaReporteExcel>> responseList = originalList
+                .GroupBy(a => a.IdUsuario)
+                .Select(g => g.Select(a => new AsistenciaReporteExcel
+                {
+                    Usuario = a.IdUsuarioNavigation.UserName,
+                    Nombre = a.IdUsuarioNavigation.Nombre,
+                    Apellido = a.IdUsuarioNavigation.Apellido,
+                    FechaEntrada = a.FechaEntrada,
+                    FechaSalida = a.FechaSalida
+                })
+                ).ToList();
+
+            string rootPath = $"{_environment.WebRootPath}/docs";
+
+            WorkBook original = WorkBook.Load($"{rootPath}/NOAM_REPORTES_31.xlsx");
+            WorkBook nuevo = original.SaveAs($"{DateTime.UtcNow: yyyy_MM_dd}_NOAM_REPORTE.xlsx");
+            WorkSheet reporte = nuevo.GetWorkSheet("Hoja1");
+
+            int diasDelMes = DateTime.DaysInMonth(fechaInicial.Year, fechaInicial.Month);
+
+            foreach (var group in responseList.Select((values, i) => (values, i)))
+            {
+                if (group.values.Any())
+                {
+                    reporte.Rows[4 + group.i].Columns[0].Value = group.values.First().Usuario;
+                    reporte.Rows[4 + group.i].Columns[1].Value = group.values.First().Nombre;
+                    reporte.Rows[4 + group.i].Columns[2].Value = group.values.First().Apellido;
+
+                    // HACER UN FOR POR CADA DIA Y SACAR EL DIA DE LA LISTA QUE APLIQUE PARA
+                    // GUARDAR EL REGISTRO
+                    for (int dia = 0; dia < diasDelMes; dia++)
+                    {
+                        // SI ALGUN DIA DE LA FECHA DE LOS REGISTROS ES EL DIA ACTUAL DE LA ITERACION
+                        if (group.values.Any(a => a.FechaEntrada.Day == dia + 1))
+                        {
+                            reporte.Rows[4 + group.i].Columns[4 + dia].Value = "X";
+                        }
+                        else
+                        {
+                            reporte.Rows[4 + group.i].Columns[4 + dia].Value = "F";
+                        }
+                    }
+                }
+            }
+
+            nuevo.Save();
+
+            byte[] response = nuevo.ToBinary();
+
+            return File(response, "application/octet-stream", "file.xlsx");
         }
 
         // GET: api/Asistencias/5

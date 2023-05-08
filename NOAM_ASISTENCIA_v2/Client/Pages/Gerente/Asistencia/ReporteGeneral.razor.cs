@@ -19,6 +19,7 @@ partial class ReporteGeneral
     [Parameter] public string Username { get; set; } = null!;
 
     [Inject] private HttpClient HttpClient { get; set; } = null!;
+    [Inject] private NavigationManager NavManager { get; set; } = null!;
     [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
     private readonly string _allItemsText = "Mostrando {first_item} de {last_item}. Total: {all_items}";
@@ -121,6 +122,26 @@ partial class ReporteGeneral
         };
 
         return nullPagingResponse;
+    }
+
+    private void GetReporte()
+    {
+        var queryStringParam = new Dictionary<string, string>
+        {
+            ["pageNumber"] = _searchParameters.PageNumber.ToString(),
+            ["pageSize"] = _searchParameters.PageSize.ToString(),
+            ["searchTerm"] = _searchParameters.SearchTerm ?? "",
+            ["orderBy"] = _searchParameters.OrderBy ?? "",
+
+            ["username"] = _filters.Username ?? "",
+            ["timeZoneId"] = _filters.TimeZoneId ?? "",
+            ["fechaInicial"] = _filters.FechaInicial!.Value.ToString("yyyy-MM-dd") ?? "",
+            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? "",
+
+            ["esReporteGeneral"] = true.ToString()
+        };
+
+        NavManager.NavigateTo($"api/{QueryHelpers.AddQueryString("asistencias/reporteasistencia", queryStringParam)}", true);
     }
 
     private async Task FirstDateHasChanged()
