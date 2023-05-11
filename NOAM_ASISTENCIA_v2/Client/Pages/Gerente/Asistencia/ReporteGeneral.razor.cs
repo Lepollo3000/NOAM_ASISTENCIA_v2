@@ -8,6 +8,7 @@ using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures.Asistencia;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Gerente.Asistencia;
 
@@ -16,10 +17,9 @@ partial class ReporteGeneral
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
 
-    [Parameter] public string Username { get; set; } = null!;
-
     [Inject] private HttpClient HttpClient { get; set; } = null!;
     [Inject] private NavigationManager NavManager { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
     private readonly string _allItemsText = "Mostrando {first_item} de {last_item}. Total: {all_items}";
@@ -28,6 +28,7 @@ partial class ReporteGeneral
 
     private int _pageSize = 10;
     private AsistenciaGeneralDTO _model = new();
+    private IEnumerable<ServicioDTO> _servicios = new List<ServicioDTO>() { new() { Id = 0, Descripcion = "Ninguno" } };
     private SearchParameters _searchParameters = new();
     private AsistenciaFilterParameters _filters = new();
     private MudTable<AsistenciaGeneralDTO> _table = new();
@@ -36,7 +37,7 @@ partial class ReporteGeneral
     {
         await InitializeBreadcrumb();
 
-        SetFilterParameters();
+        await SetFilterParameters();
     }
 
     private async Task InitializeBreadcrumb()
@@ -50,16 +51,46 @@ partial class ReporteGeneral
         await Layout.SetBreadcrumb(breadcrumb);
     }
 
-    private void SetFilterParameters()
+    private async Task SetFilterParameters()
     {
         _filters = new()
         {
             FechaInicial = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
             FechaFinal = new DateTime(DateTime.Now.Year, DateTime.Now.Month,
                 DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)),
-            TimeZoneId = TimeZoneInfo.Local.Id,
-            Username = Username
+            TimeZoneId = TimeZoneInfo.Local.Id
         };
+
+        await GetServicios();
+    }
+
+    private async Task GetServicios()
+    {
+        var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
+
+        using var response = await HttpClient.GetAsync(
+            QueryHelpers.AddQueryString("servicios", showAllParam)
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            try
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync();
+
+                _servicios = _servicios.Concat(await JsonSerializer.DeserializeAsync<IEnumerable<ServicioDTO>>(stream, _options) ?? null!);
+
+                _filters.ServicioId = _servicios.First().Id;
+            }
+            catch (Exception)
+            {
+                await UnhandledErrorAlert("Ocurrió un error inesperado.");
+            }
+        }
+        else
+        {
+            await UnhandledErrorAlert("Error al tratar de obtener el listado de servicios.");
+        }
     }
 
     private async Task<TableData<AsistenciaGeneralDTO>> GetServerData(TableState state)
@@ -84,13 +115,14 @@ partial class ReporteGeneral
         {
             ["pageNumber"] = _searchParameters.PageNumber.ToString(),
             ["pageSize"] = _searchParameters.PageSize.ToString(),
-            ["searchTerm"] = _searchParameters.SearchTerm ?? "",
-            ["orderBy"] = _searchParameters.OrderBy ?? "",
+            ["searchTerm"] = _searchParameters.SearchTerm ?? string.Empty,
+            ["orderBy"] = _searchParameters.OrderBy ?? string.Empty,
 
-            ["username"] = _filters.Username ?? "",
-            ["timeZoneId"] = _filters.TimeZoneId ?? "",
-            ["fechaInicial"] = _filters.FechaInicial!.Value.ToString("yyyy-MM-dd") ?? "",
-            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? "",
+            ["username"] = _filters.Username ?? string.Empty,
+            ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty,
+            ["timeZoneId"] = _filters.TimeZoneId ?? string.Empty,
+            ["fechaInicial"] = _filters.FechaInicial!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
+            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
 
             ["esReporteGeneral"] = true.ToString()
         };
@@ -118,7 +150,7 @@ partial class ReporteGeneral
         var nullPagingResponse = new PagingResponse<AsistenciaGeneralDTO>
         {
             Items = null!,
-            MetaData = null!
+            MetaData = new MetaData()
         };
 
         return nullPagingResponse;
@@ -130,27 +162,46 @@ partial class ReporteGeneral
         {
             ["pageNumber"] = _searchParameters.PageNumber.ToString(),
             ["pageSize"] = _searchParameters.PageSize.ToString(),
-            ["searchTerm"] = _searchParameters.SearchTerm ?? "",
-            ["orderBy"] = _searchParameters.OrderBy ?? "",
+            ["searchTerm"] = _searchParameters.SearchTerm ?? string.Empty,
+            ["orderBy"] = _searchParameters.OrderBy ?? string.Empty,
 
-            ["username"] = _filters.Username ?? "",
-            ["timeZoneId"] = _filters.TimeZoneId ?? "",
-            ["fechaInicial"] = _filters.FechaInicial!.Value.ToString("yyyy-MM-dd") ?? "",
-            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? "",
+            ["username"] = _filters.Username ?? string.Empty,
+            ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty,
+            ["timeZoneId"] = _filters.TimeZoneId ?? string.Empty,
+            ["fechaInicial"] = _filters.FechaInicial!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
+            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
 
             ["esReporteGeneral"] = true.ToString()
         };
 
         NavManager.NavigateTo($"api/{QueryHelpers.AddQueryString("asistencias/reporteasistencia", queryStringParam)}", true);
+        //await JSRuntime.InvokeVoidAsync("open", new object[] { QueryHelpers.AddQueryString("asistencias/reporteasistencia", queryStringParam), "_blank" });
     }
 
-    private async Task FirstDateHasChanged()
+    private async Task ServicioIdChanged(int? value)
     {
+        _filters.ServicioId = value;
+
+        StateHasChanged();
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task FechaInicialChanged(DateTime? value)
+    {
+        _filters.FechaInicial = value;
+
+        StateHasChanged();
+
         await ValidateDates();
     }
 
-    private async Task LastDateHasChanged()
+    private async Task FechaFinalChanged(DateTime? value)
     {
+        _filters.FechaFinal = value;
+
+        StateHasChanged();
+
         await ValidateDates();
     }
 
@@ -163,10 +214,25 @@ partial class ReporteGeneral
 
             _filters.FechaInicial = fechaInicial;
             _filters.FechaFinal = fechaFinal;
-
-            StateHasChanged();
         }
 
         await _table.ReloadServerData();
+    }
+
+    private async Task UnhandledErrorAlert(string message)
+    {
+        string confirmButtonColor = Theme.Palette.Primary.Value;
+
+        await SwalService.FireAsync(new SweetAlertOptions
+        {
+            Icon = SweetAlertIcon.Error,
+            Title = "Ups, algo salió mal",
+            Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
+                    {message} Intente de nuevo más tarde o consulte a un administrador.
+                </div>",
+            ShowConfirmButton = true,
+            ConfirmButtonColor = confirmButtonColor,
+            ConfirmButtonText = "Entendido"
+        });
     }
 }

@@ -3,19 +3,33 @@
 
 <PageTitle>Reporte de Asistencia</PageTitle>
 
-<h1 class="h3">Reporte de Asistencia para @Username</h1>
+<h1 class="h3">Reporte de Asistencia</h1>
 
-<div class="row justify-content-between mb-5">
+<div class="row justify-content-between align-content-center mb-5">
     <div class="col">
-        <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaInicial))" PickerClosed="FirstDateHasChanged"
-                       For="@(() => _filters.FechaInicial)" @bind-Date="_filters.FechaInicial"
-                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
+                       Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaInicial))"
+                       For="@(() => _filters.FechaInicial)" DateChanged="FechaInicialChanged"
+                       Date="_filters.FechaInicial" />
     </div>
 
     <div class="col">
-        <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))" PickerClosed="LastDateHasChanged"
-                       For="@(() => _filters.FechaFinal)" @bind-Date="_filters.FechaFinal"
-                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
+                       Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))"
+                       For="@(() => _filters.FechaFinal)" DateChanged="FechaFinalChanged"
+                       Date="_filters.FechaFinal" />
+    </div>
+
+    <div class="col">
+        <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                   Label="@(DisplayName.GetDisplayName(_filters, m => m.ServicioId))"
+                   For="@(() => _filters.ServicioId)" T="int?" ValueChanged="ServicioIdChanged"
+                   Value="_filters.ServicioId">
+            @foreach (ServicioDTO servicio in _servicios)
+            {
+                <MudSelectItem T="int?" Value="servicio.Id">@servicio.Descripcion</MudSelectItem>
+            }
+        </MudSelect>
     </div>
 
     <div class="col justify-content-center align-content-center">

@@ -49,6 +49,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             IQueryable<Asistencia> originalQuery = _context.Asistencias
                 .Include(a => a.IdSucursalNavigation)
                 .Include(a => a.IdUsuarioNavigation)
+                .Where(a => filters.ServicioId.HasValue &&
+                    a.IdSucursal == filters.ServicioId)
                 .Sort(parameters.OrderBy!)
                 .Search(null!);
 
@@ -187,6 +189,8 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             IQueryable<Asistencia> originalQuery = _context.Asistencias
                 .Include(a => a.IdSucursalNavigation)
                 .Include(a => a.IdUsuarioNavigation)
+                .Where(a => filters.ServicioId.HasValue &&
+                    a.IdSucursal == filters.ServicioId)
                 .Sort(parameters.OrderBy!)
                 .Search(null!);
 
@@ -250,10 +254,13 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 ).ToList();
 
             string rootPath = $"{_environment.WebRootPath}/docs";
+            string strMes = fechaInicial.ToString("MMMM yyyy");
 
             WorkBook original = WorkBook.Load($"{rootPath}/NOAM_REPORTES_31.xlsx");
-            WorkBook nuevo = original.SaveAs($"{DateTime.UtcNow: yyyy_MM_dd}_NOAM_REPORTE.xlsx");
-            WorkSheet reporte = nuevo.GetWorkSheet("Hoja1");
+            WorkSheet reporte = original.GetWorkSheet("Hoja1");
+            // SE CAMBIA EL NOMBRE DE LA HOJA PRINCIPAL (SE AGREGARÁN MÁS HOJAS DE SER NECESARIO)
+            reporte.Name = strMes;
+            reporte.Rows[0].Columns[2].Value = "";
 
             int diasDelMes = DateTime.DaysInMonth(fechaInicial.Year, fechaInicial.Month);
 
@@ -282,11 +289,11 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 }
             }
 
-            nuevo.Save();
+            byte[] response = original.ToBinary();
 
-            byte[] response = nuevo.ToBinary();
+            original.Close();
 
-            return File(response, "application/octet-stream", "file.xlsx");
+            return File(response, "application/octet-stream", $"Reporte {strMes}.xlsx");
         }
 
         // GET: api/Asistencias/5

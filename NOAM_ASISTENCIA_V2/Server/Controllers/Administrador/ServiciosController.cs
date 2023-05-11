@@ -25,7 +25,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 
         // GET: api/SucursalesServicio
         [HttpGet]
-        public async Task<IActionResult> GetSucursalServicios([FromQuery] SearchParameters productParameters)
+        [AllowAnonymous]
+        //[Authorize(Roles = "Administrador, Intendente, Gerente")]
+        public async Task<IActionResult> GetSucursalServicios([FromQuery] SearchParameters productParameters, bool showAll)
         {
             if (_context.Servicios == null)
             {
@@ -34,18 +36,21 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers.Administrador
 
             IQueryable<Servicio> originalQuery = _context.Servicios
                 .Sort(productParameters.OrderBy!)
-                .Search(null!);
+                .Search(null!)
+                .Where(s => s.Habilitado);
 
-            IQueryable<ServicioDTO> responseQuery = originalQuery
+            List<ServicioDTO> responseQuery = await originalQuery
                 .Select(servicio => new ServicioDTO
                 {
                     Id = servicio.Id,
                     CodigoId = servicio.CodigoId,
                     Descripcion = servicio.Descripcion,
                     Habilitado = servicio.Habilitado
-                });
+                })
+                .ToListAsync();
 
-            var response = PagedList<ServicioDTO>.ToPagedList(await responseQuery.ToListAsync(), productParameters.PageNumber, productParameters.PageSize);
+            var response = PagedList<ServicioDTO>.ToPagedList(responseQuery, productParameters.PageNumber,
+                productParameters.PageSize);
 
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(response.MetaData));
 
