@@ -200,16 +200,18 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
 
             DateTime fechaInicial = filters.FechaMes.HasValue
-                ? filters.FechaMes.Value.Date.Add(timeZone.BaseUtcOffset)
+                ? new DateTime(filters.FechaMes.Value.Year, filters.FechaMes.Value.Month,
+                    DateTime.DaysInMonth(filters.FechaMes.Value.Year, filters.FechaMes.Value.Month))
                 : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
-                    .Add(timeZone.BaseUtcOffset);
+                    /*.Add(timeZone.BaseUtcOffset)*/;
             DateTime fechaFinal = filters.FechaMes.HasValue
                 ? new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
                     .DaysInMonth(fechaInicial.Year, fechaInicial.Month))
-                    .Add(timeZone.BaseUtcOffset)
+                /*.Add(timeZone.BaseUtcOffset)*/
                 : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime
                     .DaysInMonth(fechaInicial.Year, fechaInicial.Month))
-                    .Add(timeZone.BaseUtcOffset);
+                    //.AddDays(1)
+                    /*.Add(timeZone.BaseUtcOffset)*/;
 
             IEnumerable<IEnumerable<AsistenciaReporteExcel>> queryList;
 
@@ -266,15 +268,21 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
             string rootPath = $"{_environment.WebRootPath}/docs";
             string nomenclaturaDelMes = fechaInicial.ToString("MMMM yyyy");
+            int cantidadDiasEnMes = DateTime.DaysInMonth(fechaInicial.Year, fechaInicial.Month);
 
-            WorkBook original = WorkBook.Load($"{rootPath}/NOAM_REPORTES_31.xlsx");
-            WorkSheet reporte = original.GetWorkSheet("Hoja1");
+            WorkBook documento = cantidadDiasEnMes switch
+            {
+                28 => WorkBook.Load($"{rootPath}/NOAM_REPORTES_28.xlsx"),
+                29 => WorkBook.Load($"{rootPath}/NOAM_REPORTES_29.xlsx"),
+                30 => WorkBook.Load($"{rootPath}/NOAM_REPORTES_30.xlsx"),
+                31 => WorkBook.Load($"{rootPath}/NOAM_REPORTES_31.xlsx"),
+                _ => throw new NotImplementedException()
+            };
+            WorkSheet reporte = documento.GetWorkSheet("Hoja1");
 
             reporte.Name = nomenclaturaDelMes;
             reporte.Rows[0].Columns[2].Value = queryList.First().First().Servicio;
             reporte.Rows[2].Columns[4].Value = nomenclaturaDelMes;
-
-            int cantidadDiasEnMes = DateTime.DaysInMonth(fechaInicial.Year, fechaInicial.Month);
 
             foreach (var group in queryList.Select((values, index) => (values, index)))
             {
@@ -291,7 +299,15 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                         // SI ALGUN DIA DE LA FECHA DE LOS REGISTROS ES EL DIA ACTUAL DE LA ITERACION
                         if (group.values.Any(a => a.FechaEntrada.Day == dia + 1))
                         {
-                            reporte.Rows[4 + group.index].Columns[4 + dia].Value = "X";
+                            if (group.values.Any(a => a.FechaEntrada.Day == dia + 1
+                                && a.FechaSalida.HasValue))
+                            {
+                                reporte.Rows[4 + group.index].Columns[4 + dia].Value = "X";
+                            }
+                            else
+                            {
+                                reporte.Rows[4 + group.index].Columns[4 + dia].Value = "·";
+                            }
                         }
                         else
                         {
@@ -301,9 +317,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 }
             }
 
-            byte[] response = original.ToBinary();
+            byte[] response = documento.ToBinary();
 
-            original.Close();
+            documento.Close();
 
             return File(response, "application/octet-stream", $"Reporte {nomenclaturaDelMes}.xlsx");
         }
