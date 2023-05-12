@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NOAM_ASISTENCIA_V2.Client.Pages.Intendente.Asistencia;
+using NOAM_ASISTENCIA_V2.Client.Utils;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
@@ -91,7 +93,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             DateTime fechaFinal;
 
             // SE REVISA SI ALGÚN PARÁMETRO DE FECHA ES NULO
-            if (filters.FechaInicial == null || filters.FechaFinal == null)
+            if (filters.FechaMes == null || filters.FechaFinal == null)
             {
                 // POR PREDETERMINADO SERÁN EL PRIMER Y ÚLTIMO DÍA DEL MES
                 DateTime primerDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
@@ -104,12 +106,12 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             else
             {
                 // SE REVISA QUE LA FECHA INICIAL NO SEA MAYOR A LA FECHA FINAL
-                if (filters.FechaInicial > filters.FechaFinal)
+                if (filters.FechaMes > filters.FechaFinal)
                 {
                     return BadRequest("La fecha inicial no debe ser mayor a la fecha final. Realice la corrección pertinente o, si el error persiste, consulte a un administrador.");
                 }
 
-                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaInicial.Value.Date, timeZone);
+                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaMes.Value.Date, timeZone);
                 fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaFinal.Value.Date, timeZone);
             }
 
@@ -186,14 +188,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 return BadRequest("Se requiere la zona horaria.");
             }
 
-            IQueryable<Asistencia> originalQuery = _context.Asistencias
-                .Include(a => a.IdSucursalNavigation)
-                .Include(a => a.IdUsuarioNavigation)
-                .Where(a => filters.ServicioId.HasValue &&
-                    a.IdSucursal == filters.ServicioId)
-                .Sort(parameters.OrderBy!)
-                .Search(null!);
-
             // SE OBTIENE LA ZONA HORARIA PROPORCIONADA
             TimeZoneInfo timeZone;
             try
@@ -205,85 +199,103 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 return BadRequest("La zona horaria proporcionada no se encontró o no existe. Intente de nuevo más tarde o contacte a un administrador.");
             }
 
-            DateTime fechaInicial;
-            DateTime fechaFinal;
+            DateTime fechaInicial = filters.FechaMes.HasValue
+                ? filters.FechaMes.Value.Date.Add(timeZone.BaseUtcOffset)
+                : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
+                    .Add(timeZone.BaseUtcOffset);
+            DateTime fechaFinal = filters.FechaMes.HasValue
+                ? new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
+                    .DaysInMonth(fechaInicial.Year, fechaInicial.Month))
+                    .Add(timeZone.BaseUtcOffset)
+                : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime
+                    .DaysInMonth(fechaInicial.Year, fechaInicial.Month))
+                    .Add(timeZone.BaseUtcOffset);
 
-            // SE REVISA SI ALGÚN PARÁMETRO DE FECHA ES NULO
-            if (filters.FechaInicial == null || filters.FechaFinal == null)
+            IEnumerable<IEnumerable<AsistenciaReporteExcel>> queryList;
+
+            try
             {
-                // POR PREDETERMINADO SERÁN EL PRIMER Y ÚLTIMO DÍA DEL MES
-                DateTime primerDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-                DateTime ultimoDiaMes = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month,
-                    DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month));
-
-                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(primerDiaMes, timeZone);
-                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(ultimoDiaMes, timeZone);
+                // INTENTAR FILTRAR CON ZONA HORARIA DE IANA
+                queryList = await _context.Asistencias
+                    .Include(a => a.IdSucursalNavigation)
+                    .Include(a => a.IdUsuarioNavigation)
+                    .Sort(parameters.OrderBy!)
+                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
+                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id) >= fechaInicial)
+                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id) <= fechaFinal)
+                    .GroupBy(a => a.IdUsuario)
+                    .Select(g => g.Select(a => new AsistenciaReporteExcel
+                    {
+                        Usuario = a.IdUsuarioNavigation.UserName,
+                        Nombre = a.IdUsuarioNavigation.Nombre,
+                        Apellido = a.IdUsuarioNavigation.Apellido,
+                        FechaEntrada = a.FechaEntrada,
+                        FechaSalida = a.FechaSalida
+                    }))
+                    .ToListAsync();
             }
-            else
+            catch (SqlException)
             {
-                // SE REVISA QUE LA FECHA INICIAL NO SEA MAYOR A LA FECHA FINAL
-                if (filters.FechaInicial > filters.FechaFinal)
-                {
-                    return BadRequest("La fecha inicial no debe ser mayor a la fecha final. Realice la corrección pertinente o, si el error persiste, consulte a un administrador.");
-                }
+                // FILTRAR CON ZONA HORARIA FEA DE WINDOWS
+                TimeZoneInfo.TryConvertIanaIdToWindowsId(timeZone.Id, out string? timeZoneInfo);
 
-                fechaInicial = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaInicial.Value.Date, timeZone);
-                fechaFinal = TimeZoneInfo.ConvertTimeFromUtc(filters.FechaFinal.Value.Date, timeZone);
+                queryList = await _context.Asistencias
+                    .Include(a => a.IdSucursalNavigation)
+                    .Include(a => a.IdUsuarioNavigation)
+                    .Sort(parameters.OrderBy!)
+                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
+                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZoneInfo!) >= fechaInicial)
+                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZoneInfo!) <= fechaFinal)
+                    .GroupBy(a => a.IdUsuario)
+                    .Select(g => g.Select(a => new AsistenciaReporteExcel
+                    {
+                        Servicio = a.IdSucursalNavigation.Descripcion,
+                        Usuario = a.IdUsuarioNavigation.UserName,
+                        Nombre = a.IdUsuarioNavigation.Nombre,
+                        Apellido = a.IdUsuarioNavigation.Apellido,
+                        FechaEntrada = a.FechaEntrada,
+                        FechaSalida = a.FechaSalida
+                    }))
+                    .ToListAsync();
             }
 
-            // SE ENLISTAN LOS REGISTROS, YA QUE NO SE PUEDEN TRADUCIR LAS TRANSFORMACIONES DE FECHAS
-            IEnumerable<Asistencia> originalList = await originalQuery.ToListAsync();
-
-            // SE FILTRAN LOS REGISTROS POR LA FECHA TRANSFORMADA, PARA EVITAR PROBLEMAS DE SINCRONIZACIÓN
-            // POR HUSOS HORARIOS DIFERENTES
-            originalList = originalList
-                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date >= fechaInicial)
-                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.FechaEntrada, timeZone).Date <= fechaFinal);
-
-            // SE GENERAN LOS REPORTES GENERALES AGRUPADOS POR USUARIO
-            IEnumerable<IEnumerable<AsistenciaReporteExcel>> responseList = originalList
-                .GroupBy(a => a.IdUsuario)
-                .Select(g => g.Select(a => new AsistenciaReporteExcel
-                {
-                    Usuario = a.IdUsuarioNavigation.UserName,
-                    Nombre = a.IdUsuarioNavigation.Nombre,
-                    Apellido = a.IdUsuarioNavigation.Apellido,
-                    FechaEntrada = a.FechaEntrada,
-                    FechaSalida = a.FechaSalida
-                })
-                ).ToList();
+            if (!queryList.Any())
+            {
+                return NoContent();
+            }
 
             string rootPath = $"{_environment.WebRootPath}/docs";
-            string strMes = fechaInicial.ToString("MMMM yyyy");
+            string nomenclaturaDelMes = fechaInicial.ToString("MMMM yyyy");
 
             WorkBook original = WorkBook.Load($"{rootPath}/NOAM_REPORTES_31.xlsx");
             WorkSheet reporte = original.GetWorkSheet("Hoja1");
-            // SE CAMBIA EL NOMBRE DE LA HOJA PRINCIPAL (SE AGREGARÁN MÁS HOJAS DE SER NECESARIO)
-            reporte.Name = strMes;
-            reporte.Rows[0].Columns[2].Value = "";
 
-            int diasDelMes = DateTime.DaysInMonth(fechaInicial.Year, fechaInicial.Month);
+            reporte.Name = nomenclaturaDelMes;
+            reporte.Rows[0].Columns[2].Value = queryList.First().First().Servicio;
+            reporte.Rows[2].Columns[4].Value = nomenclaturaDelMes;
 
-            foreach (var group in responseList.Select((values, i) => (values, i)))
+            int cantidadDiasEnMes = DateTime.DaysInMonth(fechaInicial.Year, fechaInicial.Month);
+
+            foreach (var group in queryList.Select((values, index) => (values, index)))
             {
                 if (group.values.Any())
                 {
-                    reporte.Rows[4 + group.i].Columns[0].Value = group.values.First().Usuario;
-                    reporte.Rows[4 + group.i].Columns[1].Value = group.values.First().Nombre;
-                    reporte.Rows[4 + group.i].Columns[2].Value = group.values.First().Apellido;
+                    reporte.Rows[4 + group.index].Columns[0].Value = group.values.First().Usuario;
+                    reporte.Rows[4 + group.index].Columns[1].Value = group.values.First().Nombre;
+                    reporte.Rows[4 + group.index].Columns[2].Value = group.values.First().Apellido;
 
                     // HACER UN FOR POR CADA DIA Y SACAR EL DIA DE LA LISTA QUE APLIQUE PARA
                     // GUARDAR EL REGISTRO
-                    for (int dia = 0; dia < diasDelMes; dia++)
+                    for (int dia = 0; dia < cantidadDiasEnMes; dia++)
                     {
                         // SI ALGUN DIA DE LA FECHA DE LOS REGISTROS ES EL DIA ACTUAL DE LA ITERACION
                         if (group.values.Any(a => a.FechaEntrada.Day == dia + 1))
                         {
-                            reporte.Rows[4 + group.i].Columns[4 + dia].Value = "X";
+                            reporte.Rows[4 + group.index].Columns[4 + dia].Value = "X";
                         }
                         else
                         {
-                            reporte.Rows[4 + group.i].Columns[4 + dia].Value = "F";
+                            reporte.Rows[4 + group.index].Columns[4 + dia].Value = "F";
                         }
                     }
                 }
@@ -293,7 +305,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
             original.Close();
 
-            return File(response, "application/octet-stream", $"Reporte {strMes}.xlsx");
+            return File(response, "application/octet-stream", $"Reporte {nomenclaturaDelMes}.xlsx");
         }
 
         // GET: api/Asistencias/5

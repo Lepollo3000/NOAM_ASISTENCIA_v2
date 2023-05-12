@@ -8,6 +8,7 @@ namespace NOAM_ASISTENCIA_V2.Shared.Models
 {
     public class AsistenciaReporteExcel
     {
+        public string Servicio { get; set; } = null!;
         public string Usuario { get; set; } = null!;
         public string Nombre { get; set; } = null!;
         public string Apellido { get; set; } = null!;

@@ -4,6 +4,7 @@ using NOAM_ASISTENCIA_V2.Server;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utills.Identity;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -84,6 +85,8 @@ builder.Services.AddHttpContextAccessor();
 // Register the worker responsible for seeding the database.
 // Note: in a real world application, this step should be part of a setup script.
 builder.Services.AddHostedService<InitDB>();
+
+CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
 var app = builder.Build();
 

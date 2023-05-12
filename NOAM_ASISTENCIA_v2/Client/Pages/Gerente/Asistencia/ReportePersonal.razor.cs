@@ -54,7 +54,7 @@ partial class ReportePersonal
     {
         _filters = new()
         {
-            FechaInicial = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+            FechaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
             FechaFinal = new DateTime(DateTime.Now.Year, DateTime.Now.Month,
                 DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)),
             TimeZoneId = TimeZoneInfo.Local.Id,
@@ -89,7 +89,7 @@ partial class ReportePersonal
 
             ["username"] = _filters.Username ?? "",
             ["timeZoneId"] = _filters.TimeZoneId ?? "",
-            ["fechaInicial"] = _filters.FechaInicial!.Value.ToString("yyyy-MM-dd") ?? "",
+            ["fechaInicial"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? "",
             ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? ""
         };
 
@@ -134,12 +134,12 @@ partial class ReportePersonal
 
     private async Task ValidateDates()
     {
-        if (_filters.FechaInicial > _filters.FechaFinal)
+        if (_filters.FechaMes > _filters.FechaFinal)
         {
             DateTime? fechaInicial = _filters.FechaFinal;
-            DateTime? fechaFinal = _filters.FechaInicial;
+            DateTime? fechaFinal = _filters.FechaMes;
 
-            _filters.FechaInicial = fechaInicial;
+            _filters.FechaMes = fechaInicial;
             _filters.FechaFinal = fechaFinal;
 
             StateHasChanged();

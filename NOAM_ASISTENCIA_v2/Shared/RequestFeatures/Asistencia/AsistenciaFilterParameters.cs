@@ -9,7 +9,7 @@ public class AsistenciaFilterParameters
     public int? ServicioId { get; set; }
     public string TimeZoneId { get; set; } = null!;
     [Display(Name = "Fecha Inicial")]
-    public DateTime? FechaInicial { get; set; }
+    public DateTime? FechaMes { get; set; }
     [Display(Name = "Fecha Final")]
     public DateTime? FechaFinal { get; set; }
 }
