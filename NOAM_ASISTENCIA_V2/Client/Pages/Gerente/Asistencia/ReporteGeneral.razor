@@ -10,16 +10,17 @@
         <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
-                       Date="_filters.FechaMes" />
+                       Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" /> 
+                       
     </div>
-
+    @*
     <div class="col">
         <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))"
                        For="@(() => _filters.FechaFinal)" DateChanged="FechaFinalChanged"
                        Date="_filters.FechaFinal" />
     </div>
-
+    *@
     <div class="col">
         <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
                    Label="@(DisplayName.GetDisplayName(_filters, m => m.ServicioId))"
@@ -61,7 +62,7 @@
         </MudTh>
 
         <MudTh Class="text-center">
-            @(DisplayName.GetDisplayName(_model, m => m.HorasLaboradas))
+            @(DisplayName.GetDisplayName(_model, m => m.MinutosLaborados))
         </MudTh>
 
         <MudTh></MudTh>
@@ -81,7 +82,7 @@
         </MudTd>
 
         <MudTd Class="text-center">
-            @context.HorasLaboradas.ToString("##0.##")
+            @((context.MinutosLaborados / 60).ToString("##0.##"))
         </MudTd>
 
         <MudTd Class="text-center">

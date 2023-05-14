@@ -9,6 +9,7 @@ using NOAM_ASISTENCIA_V2.Shared.RequestFeatures.Asistencia;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 using System.Text.Json;
 using Microsoft.JSInterop;
+using System.Buffers.Text;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Gerente.Asistencia;
 
@@ -121,8 +122,7 @@ partial class ReporteGeneral
             ["username"] = _filters.Username ?? string.Empty,
             ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty,
             ["timeZoneId"] = _filters.TimeZoneId ?? string.Empty,
-            ["fechaInicial"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
-            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
+            ["fechaMes"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
 
             ["esReporteGeneral"] = true.ToString()
         };
@@ -156,7 +156,7 @@ partial class ReporteGeneral
         return nullPagingResponse;
     }
 
-    private void GetReporte()
+    private async void GetReporte()
     {
         var queryStringParam = new Dictionary<string, string>
         {
@@ -168,13 +168,56 @@ partial class ReporteGeneral
             ["username"] = _filters.Username ?? string.Empty,
             ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty,
             ["timeZoneId"] = _filters.TimeZoneId ?? string.Empty,
-            ["fechaInicial"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
-            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
+            ["fechaMes"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
 
             ["esReporteGeneral"] = true.ToString()
         };
 
-        NavManager.NavigateTo($"api/{QueryHelpers.AddQueryString("asistencias/reporteasistencia", queryStringParam)}", true);
+        await SwalService.FireAsync(new SweetAlertOptions
+        {
+            Title = "Generando reporte... Por favor espere",
+            Html = $@"<div class=""mx-4 my-5"" style=""text-align: center"">
+                    <i class=""text-info fa fa-sync-alt fa-4x fa-spin""></i>
+                </div>",
+            ShowConfirmButton = false,
+            ShowCancelButton = false,
+            AllowEscapeKey = false,
+            AllowEnterKey = false,
+            AllowOutsideClick = false,
+            DidOpen = new SweetAlertCallback(async () =>
+            {
+                // POR ALGUNA PENDEJA RAZÓN SI NO SE PONE UN DELAY NO SE MUESTRA LA ALERTA
+                await Task.Delay(250);
+
+                using var response = await HttpClient.GetAsync(QueryHelpers
+                    .AddQueryString("asistencias/reporteasistencia", queryStringParam));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string nomenclaturaDelMes = _filters.FechaMes.Value.ToString("MMMM yyyy");
+
+                    byte[] responseStream = await response.Content.ReadAsByteArrayAsync();
+
+                    if (responseStream.Length > 0)
+                    {
+                        await JSRuntime.InvokeAsync<object>("BlazorDownloadFile",
+                            $"Reporte {nomenclaturaDelMes}.xlsx",
+                            "application/octet-stream",
+                            responseStream);
+
+                        await SuccessfulAlert("Reporte generado exitosamente",
+                            @"El reporte general de asistencia ha sido exportado a
+                            excel y descargado de forma exitosa.");
+                    }
+                    else
+                    {
+                        await UnhandledErrorAlert("No hay registros por reportar o no se encontraron.");
+                    }
+                }
+            })
+        });
+
+        //NavManager.NavigateTo($"api/{}", true);
         //await JSRuntime.InvokeVoidAsync("open", new object[] { QueryHelpers.AddQueryString("asistencias/reporteasistencia", queryStringParam), "_blank" });
     }
 
@@ -193,10 +236,10 @@ partial class ReporteGeneral
 
         StateHasChanged();
 
-        await ValidateDates();
+        await _table.ReloadServerData();
     }
 
-    private async Task FechaFinalChanged(DateTime? value)
+    /*private async Task FechaFinalChanged(DateTime? value)
     {
         _filters.FechaFinal = value;
 
@@ -216,7 +259,27 @@ partial class ReporteGeneral
             _filters.FechaFinal = fechaFinal;
         }
 
-        await _table.ReloadServerData();
+    }*/
+
+    private async Task SuccessfulAlert(string titulo, string message)
+    {
+        string confirmButtonColor = Theme.Palette.Primary.Value;
+
+        await SwalService.FireAsync(new SweetAlertOptions
+        {
+            Icon = SweetAlertIcon.Success,
+            Title = $"{titulo}",
+            Html = $@"<div class=""mx-4 my-3"" style=""text-align: center"">
+                    {message}
+                </div>",
+            ShowConfirmButton = true,
+            ConfirmButtonColor = confirmButtonColor,
+            ConfirmButtonText = "Entendido",
+            DidOpen = new SweetAlertCallback(() =>
+            {
+                StateHasChanged();
+            })
+        });
     }
 
     private async Task UnhandledErrorAlert(string message)

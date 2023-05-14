@@ -11,5 +11,5 @@ public class AsistenciaGeneralDTO
     [Display(Name = "Apellido(s)")]
     public string UsuarioApellido { get; set; } = null!;
     [Display(Name = "Horas Laboradas")]
-    public double HorasLaboradas { get; set; }
+    public double MinutosLaborados { get; set; }
 }

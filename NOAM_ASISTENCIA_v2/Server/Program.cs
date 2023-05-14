@@ -86,8 +86,6 @@ builder.Services.AddHttpContextAccessor();
 // Note: in a real world application, this step should be part of a setup script.
 builder.Services.AddHostedService<InitDB>();
 
-CultureInfo.CurrentCulture = new CultureInfo("en-US");
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
