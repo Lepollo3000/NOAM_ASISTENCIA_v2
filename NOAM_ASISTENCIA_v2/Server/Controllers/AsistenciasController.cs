@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Extensions;
 using Newtonsoft.Json;
 using NOAM_ASISTENCIA_V2.Client.Pages.Intendente.Asistencia;
 using NOAM_ASISTENCIA_V2.Client.Utils;
@@ -62,17 +63,14 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
             #endregion
 
-            DateTime fechaInicial = filters.FechaMes.HasValue
-                ? new DateTime(filters.FechaMes.Value.Year, filters.FechaMes.Value.Month, 1)
-                : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-            DateTime fechaFinal = filters.FechaMes.HasValue
-                ? new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
-                    .DaysInMonth(fechaInicial.Year, fechaInicial.Month))
-                : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime
-                    .DaysInMonth(fechaInicial.Year, fechaInicial.Month));
-
             if (esReporteGeneral)
             {
+                DateTime fechaInicial = filters.FechaMes.HasValue
+                    ? new DateTime(filters.FechaMes.Value.Year, filters.FechaMes.Value.Month, 1)
+                    : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                DateTime fechaFinal = new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
+                        .DaysInMonth(fechaInicial.Year, fechaInicial.Month));
+
                 IEnumerable<AsistenciaGeneralDTO> responseList = await GetReportesGenerales(parameters,
                     filters, timeZone, fechaInicial, fechaFinal);
 
@@ -85,6 +83,11 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
             else
             {
+                DateTime fechaInicial = filters.FechaMes.HasValue
+                    ? filters.FechaMes.Value.Date
+                    : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                DateTime fechaFinal = fechaInicial.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+
                 ApplicationUser? user;
 
                 #region Validaciones

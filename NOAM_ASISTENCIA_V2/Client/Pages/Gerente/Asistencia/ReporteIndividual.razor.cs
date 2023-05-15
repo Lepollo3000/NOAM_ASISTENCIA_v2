@@ -29,6 +29,7 @@ partial class ReporteIndividual
     private readonly int[] _pageSizeOption = { 5, 10, 15, 20 };
 
     private int _pageSize = 10;
+    private bool allRendered = false;
     private AsistenciaPersonalDTO _model = new();
     private IEnumerable<ServicioDTO> _servicios = new List<ServicioDTO>() { new() { Id = 0, Descripcion = "Ninguno" } };
     private SearchParameters _searchParameters = new();
@@ -65,6 +66,8 @@ partial class ReporteIndividual
 
         await GetServicios();
 
+        allRendered = true;
+
         await _table.ReloadServerData();
     }
 
@@ -100,6 +103,10 @@ partial class ReporteIndividual
 
     private async Task<TableData<AsistenciaPersonalDTO>> GetServerData(TableState state)
     {
+        // ES PARA QUE NO SE MANDE A LLAMAR SI NO SE HA CAMBIADO OTRA COSA JIJIJI
+        if (allRendered)
+            NavManager.NavigateTo($"asistencia/reportes/{_filters.ServicioId ?? 0}/{_filters.FechaMes!.Value.ToString("yyyy-MM-dd")}");
+
         _searchParameters.PageSize = state.PageSize;
         _searchParameters.PageNumber = state.Page + 1;
         _searchParameters.OrderBy = state.SortLabel == null ? state.SortLabel

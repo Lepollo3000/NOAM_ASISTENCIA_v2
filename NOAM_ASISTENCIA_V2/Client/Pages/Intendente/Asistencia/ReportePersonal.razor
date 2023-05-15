@@ -1,4 +1,4 @@
-﻿@page "/asistencia/reporte"
+﻿@page "/asistencia/reporte/{ServicioId:int?}/{FechaMes:datetime?}"
 @attribute [Authorize(Roles = "Intendente")]
 
 <PageTitle>Reporte de Asistencia</PageTitle>
@@ -12,7 +12,7 @@
             <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
-                       Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" />
+                       Date="_filters.FechaMes" />
 
         </div>
 
@@ -79,7 +79,7 @@
             </MudTd>
 
             <MudTd Class="text-center">
-                @context.MinutosLaborados.ToString("##0.##")
+                @((context.MinutosLaborados / 60).ToString("##0.##"))
             </MudTd>
         </RowTemplate>
 

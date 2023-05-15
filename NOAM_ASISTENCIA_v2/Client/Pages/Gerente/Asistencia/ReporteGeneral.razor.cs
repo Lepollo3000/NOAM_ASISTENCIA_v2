@@ -66,9 +66,9 @@ partial class ReporteGeneral
 
         await GetServicios();
 
-        await _table.ReloadServerData();
-
         allRendered = true;
+
+        await _table.ReloadServerData();
     }
 
     private async Task GetServicios()

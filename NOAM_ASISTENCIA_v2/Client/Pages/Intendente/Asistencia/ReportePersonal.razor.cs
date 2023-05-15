@@ -18,7 +18,11 @@ partial class ReportePersonal
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
     [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
+    [Parameter] public int? ServicioId { get; set; }
+    [Parameter] public DateTime? FechaMes { get; set; }
+
     [Inject] private HttpClient HttpClient { get; set; } = null!;
+    [Inject] private NavigationManager NavManager { get; set; } = null!;
     [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
     private readonly string _allItemsText = "Mostrando {first_item} de {last_item}. Total: {all_items}";
@@ -26,6 +30,7 @@ partial class ReportePersonal
     private readonly int[] _pageSizeOption = { 5, 10, 15, 20 };
 
     private int _pageSize = 5;
+    private bool allRendered = false;
     private string _username = null!;
     private AsistenciaPersonalDTO _model = new();
     private IEnumerable<ServicioDTO> _servicios = new List<ServicioDTO>() { new() { Id = 0, Descripcion = "Ninguno" } };
@@ -59,21 +64,25 @@ partial class ReportePersonal
 
         _filters = new()
         {
-            FechaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day),
-            FechaFinal = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day).AddDays(1),
+            FechaMes = FechaMes ?? DateTime.Now.Date,
+            ServicioId = ServicioId ?? 0,
             TimeZoneId = TimeZoneInfo.Local.Id,
             Username = _username
         };
 
         await GetServicios();
+
+        allRendered = true;
+
+        await _table.ReloadServerData();
     }
 
     private async Task GetServicios()
     {
         var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
 
-        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
-            "servicios", showAllParam));
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("servicios", showAllParam));
 
         if (response.IsSuccessStatusCode)
         {
@@ -83,7 +92,7 @@ partial class ReportePersonal
 
                 _servicios = _servicios.Concat(await JsonSerializer.DeserializeAsync<IEnumerable<ServicioDTO>>(stream, _options) ?? null!);
 
-                _filters.ServicioId = _servicios.First().Id;
+                _filters.ServicioId = _servicios.Where(a => a.Id == (ServicioId ?? 0)).First().Id;
             }
             catch (Exception)
             {
@@ -98,6 +107,10 @@ partial class ReportePersonal
 
     private async Task<TableData<AsistenciaPersonalDTO>> GetServerData(TableState state)
     {
+        // ES PARA QUE NO SE MANDE A LLAMAR SI NO SE HA CAMBIADO OTRA COSA JIJIJI
+        if (allRendered)
+            NavManager.NavigateTo($"asistencia/reporte/{_filters.ServicioId ?? 0}/{_filters.FechaMes!.Value.ToString("yyyy-MM-dd")}");
+
         _searchParameters.PageSize = state.PageSize;
         _searchParameters.PageNumber = state.Page + 1;
         _searchParameters.OrderBy = state.SortLabel == null ? state.SortLabel
