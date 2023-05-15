@@ -16,5 +16,5 @@ public class AsistenciaPersonalDTO
     public DateTime FechaEntrada { get; set; }
     public DateTime? FechaSalida { get; set; }
     [Display(Name = "Horas Laboradas")]
-    public double HorasLaboradas { get; set; }
+    public double MinutosLaborados { get; set; }
 }

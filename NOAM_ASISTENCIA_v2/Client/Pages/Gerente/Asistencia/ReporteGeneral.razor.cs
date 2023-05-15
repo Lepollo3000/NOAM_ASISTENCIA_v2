@@ -9,7 +9,6 @@ using NOAM_ASISTENCIA_V2.Shared.RequestFeatures.Asistencia;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 using System.Text.Json;
 using Microsoft.JSInterop;
-using System.Buffers.Text;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Gerente.Asistencia;
 
@@ -18,9 +17,12 @@ partial class ReporteGeneral
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
 
+    [Parameter] public int? ServicioId { get; set; }
+    [Parameter] public DateTime? FechaMes { get; set; }
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private HttpClient HttpClient { get; set; } = null!;
     [Inject] private NavigationManager NavManager { get; set; } = null!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
     private readonly string _allItemsText = "Mostrando {first_item} de {last_item}. Total: {all_items}";
@@ -28,6 +30,7 @@ partial class ReporteGeneral
     private readonly int[] _pageSizeOption = { 5, 10, 15, 20 };
 
     private int _pageSize = 10;
+    private bool allRendered = false;
     private AsistenciaGeneralDTO _model = new();
     private IEnumerable<ServicioDTO> _servicios = new List<ServicioDTO>() { new() { Id = 0, Descripcion = "Ninguno" } };
     private SearchParameters _searchParameters = new();
@@ -56,22 +59,24 @@ partial class ReporteGeneral
     {
         _filters = new()
         {
-            FechaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
-            FechaFinal = new DateTime(DateTime.Now.Year, DateTime.Now.Month,
-                DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)),
+            FechaMes = FechaMes ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+            ServicioId = ServicioId ?? 0,
             TimeZoneId = TimeZoneInfo.Local.Id
         };
 
         await GetServicios();
+
+        await _table.ReloadServerData();
+
+        allRendered = true;
     }
 
     private async Task GetServicios()
     {
         var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("servicios", showAllParam)
-        );
+        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
+            "servicios", showAllParam));
 
         if (response.IsSuccessStatusCode)
         {
@@ -81,7 +86,7 @@ partial class ReporteGeneral
 
                 _servicios = _servicios.Concat(await JsonSerializer.DeserializeAsync<IEnumerable<ServicioDTO>>(stream, _options) ?? null!);
 
-                _filters.ServicioId = _servicios.First().Id;
+                _filters.ServicioId = _servicios.Where(a => a.Id == (ServicioId ?? 0)).First().Id;
             }
             catch (Exception)
             {
@@ -96,6 +101,10 @@ partial class ReporteGeneral
 
     private async Task<TableData<AsistenciaGeneralDTO>> GetServerData(TableState state)
     {
+        // ES PARA QUE NO SE MANDE A LLAMAR SI NO SE HA CAMBIADO OTRA COSA JIJIJI
+        if (allRendered)
+            NavManager.NavigateTo($"asistencia/reportes/{_filters.ServicioId ?? 0}/{_filters.FechaMes!.Value.ToString("yyyy-MM-dd")}");
+
         _searchParameters.PageSize = state.PageSize;
         _searchParameters.PageNumber = state.Page + 1;
         _searchParameters.OrderBy = state.SortLabel == null ? state.SortLabel
@@ -127,9 +136,8 @@ partial class ReporteGeneral
             ["esReporteGeneral"] = true.ToString()
         };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("asistencias", queryStringParam)
-        );
+        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
+            "asistencias", queryStringParam));
 
         if (response.IsSuccessStatusCode)
         {
@@ -189,8 +197,8 @@ partial class ReporteGeneral
                 // POR ALGUNA PENDEJA RAZÓN SI NO SE PONE UN DELAY NO SE MUESTRA LA ALERTA
                 await Task.Delay(250);
 
-                using var response = await HttpClient.GetAsync(QueryHelpers
-                    .AddQueryString("asistencias/reporteasistencia", queryStringParam));
+                using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
+                    "asistencias/reporteasistencia", queryStringParam));
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -216,9 +224,6 @@ partial class ReporteGeneral
                 }
             })
         });
-
-        //NavManager.NavigateTo($"api/{}", true);
-        //await JSRuntime.InvokeVoidAsync("open", new object[] { QueryHelpers.AddQueryString("asistencias/reporteasistencia", queryStringParam), "_blank" });
     }
 
     private async Task ServicioIdChanged(int? value)
@@ -238,28 +243,6 @@ partial class ReporteGeneral
 
         await _table.ReloadServerData();
     }
-
-    /*private async Task FechaFinalChanged(DateTime? value)
-    {
-        _filters.FechaFinal = value;
-
-        StateHasChanged();
-
-        await ValidateDates();
-    }
-
-    private async Task ValidateDates()
-    {
-        if (_filters.FechaMes > _filters.FechaFinal)
-        {
-            DateTime? fechaInicial = _filters.FechaFinal;
-            DateTime? fechaFinal = _filters.FechaMes;
-
-            _filters.FechaMes = fechaInicial;
-            _filters.FechaFinal = fechaFinal;
-        }
-
-    }*/
 
     private async Task SuccessfulAlert(string titulo, string message)
     {

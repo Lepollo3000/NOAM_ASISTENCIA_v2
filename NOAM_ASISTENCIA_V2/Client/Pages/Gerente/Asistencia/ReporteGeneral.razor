@@ -1,5 +1,6 @@
-﻿@page "/asistencia/reportes"
+﻿@page "/asistencia/reportes/{ServicioId:int?}/{FechaMes:datetime?}"
 @attribute [Authorize(Roles = "Gerente")]
+@using Microsoft.AspNetCore.WebUtilities;
 
 <PageTitle>Reporte de Asistencia</PageTitle>
 
@@ -10,17 +11,10 @@
         <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
-                       Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" /> 
-                       
+                       Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" />
+
     </div>
-    @*
-    <div class="col">
-        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
-                       Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))"
-                       For="@(() => _filters.FechaFinal)" DateChanged="FechaFinalChanged"
-                       Date="_filters.FechaFinal" />
-    </div>
-    *@
+
     <div class="col">
         <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
                    Label="@(DisplayName.GetDisplayName(_filters, m => m.ServicioId))"
@@ -86,10 +80,17 @@
         </MudTd>
 
         <MudTd Class="text-center">
-            <MudButton Href="@($"asistencia/reporte/{context.Username}")" Color="Color.Primary" EndIcon="fa fa-info-circle"
-                       Variant="Variant.Filled">
-                Detalles del Reporte
-            </MudButton>
+            @{
+                var queryStringParam = new Dictionary<string, string>
+                    {
+                        ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty
+                    };
+
+                <MudButton Href="@($"asistencia/reporte/{context.Username}/{_filters.ServicioId}/{_filters.FechaMes!.Value.ToString("yyyy-MM-dd")}")"
+                       Color="Color.Primary" EndIcon="fa fa-info-circle" Variant="Variant.Filled">
+                    Detalles del Reporte
+                </MudButton>
+            }
         </MudTd>
     </RowTemplate>
 

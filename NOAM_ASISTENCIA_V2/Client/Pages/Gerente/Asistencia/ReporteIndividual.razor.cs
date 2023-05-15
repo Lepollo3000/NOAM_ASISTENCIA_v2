@@ -11,14 +11,17 @@ using System.Text.Json;
 
 namespace NOAM_ASISTENCIA_V2.Client.Pages.Gerente.Asistencia;
 
-partial class ReportePersonal
+partial class ReporteIndividual
 {
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
     [CascadingParameter] public MudTheme Theme { get; set; } = null!;
 
     [Parameter] public string Username { get; set; } = null!;
+    [Parameter] public int ServicioId { get; set; }
+    [Parameter] public DateTime FechaMes { get; set; }
 
     [Inject] private HttpClient HttpClient { get; set; } = null!;
+    [Inject] private NavigationManager NavManager { get; set; } = null!;
     [Inject] private SweetAlertService SwalService { get; set; } = null!;
 
     private readonly string _allItemsText = "Mostrando {first_item} de {last_item}. Total: {all_items}";
@@ -27,6 +30,7 @@ partial class ReportePersonal
 
     private int _pageSize = 10;
     private AsistenciaPersonalDTO _model = new();
+    private IEnumerable<ServicioDTO> _servicios = new List<ServicioDTO>() { new() { Id = 0, Descripcion = "Ninguno" } };
     private SearchParameters _searchParameters = new();
     private AsistenciaFilterParameters _filters = new();
     private MudTable<AsistenciaPersonalDTO> _table = new();
@@ -35,7 +39,7 @@ partial class ReportePersonal
     {
         await InitializeBreadcrumb();
 
-        SetFilterParameters();
+        await SetFilterParameters();
     }
 
     private async Task InitializeBreadcrumb()
@@ -50,16 +54,48 @@ partial class ReportePersonal
         await Layout.SetBreadcrumb(breadcrumb);
     }
 
-    private void SetFilterParameters()
+    private async Task SetFilterParameters()
     {
         _filters = new()
         {
             FechaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
-            FechaFinal = new DateTime(DateTime.Now.Year, DateTime.Now.Month,
-                DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)),
             TimeZoneId = TimeZoneInfo.Local.Id,
             Username = Username
         };
+
+        await GetServicios();
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task GetServicios()
+    {
+        var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
+
+        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
+            "servicios", showAllParam));
+
+        if (response.IsSuccessStatusCode)
+        {
+            try
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync();
+
+                _servicios = _servicios.Concat(await JsonSerializer.DeserializeAsync<IEnumerable<ServicioDTO>>(stream, _options) ?? null!);
+
+                _filters.ServicioId = _servicios.Where(a => a.Id == ServicioId).First().Id;
+
+                StateHasChanged();
+            }
+            catch (Exception)
+            {
+                await UnhandledErrorAlert("Ocurrió un error inesperado.");
+            }
+        }
+        else
+        {
+            await UnhandledErrorAlert("Error al tratar de obtener el listado de servicios.");
+        }
     }
 
     private async Task<TableData<AsistenciaPersonalDTO>> GetServerData(TableState state)
@@ -84,13 +120,13 @@ partial class ReportePersonal
         {
             ["pageNumber"] = _searchParameters.PageNumber.ToString(),
             ["pageSize"] = _searchParameters.PageSize.ToString(),
-            ["searchTerm"] = _searchParameters.SearchTerm ?? "",
-            ["orderBy"] = _searchParameters.OrderBy ?? "",
+            ["searchTerm"] = _searchParameters.SearchTerm ?? string.Empty,
+            ["orderBy"] = _searchParameters.OrderBy ?? string.Empty,
 
-            ["username"] = _filters.Username ?? "",
-            ["timeZoneId"] = _filters.TimeZoneId ?? "",
-            ["fechaInicial"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? "",
-            ["fechaFinal"] = _filters.FechaFinal!.Value.ToString("yyyy-MM-dd") ?? ""
+            ["username"] = _filters.Username ?? string.Empty,
+            ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty,
+            ["timeZoneId"] = _filters.TimeZoneId ?? string.Empty,
+            ["fechaMes"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty
         };
 
         using var response = await HttpClient.GetAsync(
@@ -122,29 +158,59 @@ partial class ReportePersonal
         return nullPagingResponse;
     }
 
-    private async Task FirstDateHasChanged()
+    private async Task ServicioIdChanged(int? value)
     {
-        await ValidateDates();
-    }
+        _filters.ServicioId = value;
 
-    private async Task LastDateHasChanged()
-    {
-        await ValidateDates();
-    }
-
-    private async Task ValidateDates()
-    {
-        if (_filters.FechaMes > _filters.FechaFinal)
-        {
-            DateTime? fechaInicial = _filters.FechaFinal;
-            DateTime? fechaFinal = _filters.FechaMes;
-
-            _filters.FechaMes = fechaInicial;
-            _filters.FechaFinal = fechaFinal;
-
-            StateHasChanged();
-        }
+        StateHasChanged();
 
         await _table.ReloadServerData();
+    }
+
+    private async Task FechaInicialChanged(DateTime? value)
+    {
+        _filters.FechaMes = value;
+
+        StateHasChanged();
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task SuccessfulAlert(string titulo, string message)
+    {
+        string confirmButtonColor = Theme.Palette.Primary.Value;
+
+        await SwalService.FireAsync(new SweetAlertOptions
+        {
+            Icon = SweetAlertIcon.Success,
+            Title = $"{titulo}",
+            Html = $@"<div class=""mx-4 my-3"" style=""text-align: center"">
+                    {message}
+                </div>",
+            ShowConfirmButton = true,
+            ConfirmButtonColor = confirmButtonColor,
+            ConfirmButtonText = "Entendido",
+            DidOpen = new SweetAlertCallback(() =>
+            {
+                StateHasChanged();
+            })
+        });
+    }
+
+    private async Task UnhandledErrorAlert(string message)
+    {
+        string confirmButtonColor = Theme.Palette.Primary.Value;
+
+        await SwalService.FireAsync(new SweetAlertOptions
+        {
+            Icon = SweetAlertIcon.Error,
+            Title = "Ups, algo salió mal",
+            Html = $@"<div class=""mx-4 my-3"" style=""text-align: justify"">
+                    {message} Intente de nuevo más tarde o consulte a un administrador.
+                </div>",
+            ShowConfirmButton = true,
+            ConfirmButtonColor = confirmButtonColor,
+            ConfirmButtonText = "Entendido"
+        });
     }
 }

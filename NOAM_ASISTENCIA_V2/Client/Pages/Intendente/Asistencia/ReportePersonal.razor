@@ -8,16 +8,24 @@
     <h1 class="h3">Reporte de Asistencia para <strong>@_username</strong></h1>
 
     <div class="row justify-content-between mb-5">
-        <div class="col-md-6">
-            <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))" PickerClosed="FirstDateHasChanged"
-                       For="@(() => _filters.FechaMes)" @bind-Date="_filters.FechaMes"
-                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+        <div class="col">
+            <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
+                       Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
+                       For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
+                       Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" />
+
         </div>
 
-        <div class="col-md-6">
-            <MudDatePicker Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaFinal))" PickerClosed="LastDateHasChanged"
-                       For="@(() => _filters.FechaFinal)" @bind-Date="_filters.FechaFinal"
-                       AdornmentColor="Color.Secondary" Variant="Variant.Outlined" />
+        <div class="col">
+            <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+                   Label="@(DisplayName.GetDisplayName(_filters, m => m.ServicioId))"
+                   For="@(() => _filters.ServicioId)" T="int?" ValueChanged="ServicioIdChanged"
+                   Value="_filters.ServicioId">
+                @foreach (ServicioDTO servicio in _servicios)
+                {
+                    <MudSelectItem T="int?" Value="servicio.Id">@servicio.Descripcion</MudSelectItem>
+                }
+            </MudSelect>
         </div>
     </div>
 
@@ -46,7 +54,7 @@
             </MudTh>
 
             <MudTh Class="text-center">
-                @(DisplayName.GetDisplayName(_model, m => m.HorasLaboradas))
+                @(DisplayName.GetDisplayName(_model, m => m.MinutosLaborados))
             </MudTh>
         </HeaderContent>
 
@@ -71,7 +79,7 @@
             </MudTd>
 
             <MudTd Class="text-center">
-                @context.HorasLaboradas.ToString("##0.##")
+                @context.MinutosLaborados.ToString("##0.##")
             </MudTd>
         </RowTemplate>
 
