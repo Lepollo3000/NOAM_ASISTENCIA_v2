@@ -8,8 +8,7 @@
 
 <div class="row justify-content-between align-content-center mb-5">
     <div class="col">
-        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
-                       Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
+        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined" Label="Mes"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
                        Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" />
 

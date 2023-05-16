@@ -105,7 +105,7 @@ partial class ReporteIndividual
     {
         // ES PARA QUE NO SE MANDE A LLAMAR SI NO SE HA CAMBIADO OTRA COSA JIJIJI
         if (allRendered)
-            NavManager.NavigateTo($"asistencia/reportes/{_filters.ServicioId ?? 0}/{_filters.FechaMes!.Value.ToString("yyyy-MM-dd")}");
+            NavManager.NavigateTo($"asistencia/reporte/{Username}/{_filters.ServicioId ?? 0}/{_filters.FechaMes!.Value.ToString("yyyy-MM-dd")}");
 
         _searchParameters.PageSize = state.PageSize;
         _searchParameters.PageNumber = state.Page + 1;
