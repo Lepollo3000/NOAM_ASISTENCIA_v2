@@ -93,6 +93,8 @@ partial class ReportePersonal
                 _servicios = _servicios.Concat(await JsonSerializer.DeserializeAsync<IEnumerable<ServicioDTO>>(stream, _options) ?? null!);
 
                 _filters.ServicioId = _servicios.Where(a => a.Id == (ServicioId ?? 0)).First().Id;
+
+                StateHasChanged();
             }
             catch (Exception)
             {
