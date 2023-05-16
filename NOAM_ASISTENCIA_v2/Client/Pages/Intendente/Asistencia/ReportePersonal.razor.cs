@@ -72,9 +72,9 @@ partial class ReportePersonal
 
         await GetServicios();
 
-        allRendered = true;
-
         await _table.ReloadServerData();
+
+        allRendered = true;
     }
 
     private async Task GetServicios()

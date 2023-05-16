@@ -60,15 +60,16 @@ partial class ReporteIndividual
         _filters = new()
         {
             FechaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1),
+            ServicioId = ServicioId,
             TimeZoneId = TimeZoneInfo.Local.Id,
             Username = Username
         };
 
         await GetServicios();
 
-        allRendered = true;
-
         await _table.ReloadServerData();
+
+        allRendered = true;
     }
 
     private async Task GetServicios()

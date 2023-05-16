@@ -66,9 +66,9 @@ partial class ReporteGeneral
 
         await GetServicios();
 
-        allRendered = true;
-
         await _table.ReloadServerData();
+
+        allRendered = true;
     }
 
     private async Task GetServicios()
@@ -87,6 +87,8 @@ partial class ReporteGeneral
                 _servicios = _servicios.Concat(await JsonSerializer.DeserializeAsync<IEnumerable<ServicioDTO>>(stream, _options) ?? null!);
 
                 _filters.ServicioId = _servicios.Where(a => a.Id == (ServicioId ?? 0)).First().Id;
+
+                StateHasChanged();
             }
             catch (Exception)
             {

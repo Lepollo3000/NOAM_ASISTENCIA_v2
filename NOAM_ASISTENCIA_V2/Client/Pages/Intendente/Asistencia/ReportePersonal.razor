@@ -9,7 +9,7 @@
 
     <div class="row justify-content-between mb-5">
         <div class="col">
-            <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
+            <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined" DateFormat="dddd, dd MMMM yyyy"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
                        Date="_filters.FechaMes" />

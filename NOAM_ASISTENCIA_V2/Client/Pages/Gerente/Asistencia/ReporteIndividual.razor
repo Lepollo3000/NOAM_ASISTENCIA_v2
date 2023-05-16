@@ -7,7 +7,7 @@
 
 <div class="row justify-content-between mb-5">
     <div class="col">
-        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined"
+        <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined" DateFormat="MMMM yyyy"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
                        Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" />
@@ -28,7 +28,7 @@
 </div>
 
 <MudTable ServerData="@(new Func<TableState, Task<TableData<AsistenciaPersonalDTO>>>(GetServerData))"
-          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm"
+          @ref="_table" @bind-RowsPerPage="_pageSize" Breakpoint="Breakpoint.Sm" 
           Striped="true" Hover="true" AllowUnsorted="false" FixedHeader="true" Height="45vh">
     <HeaderContent>
         <MudTh>
