@@ -6,15 +6,15 @@
 
 <h1 class="h3">Reporte de Asistencia</h1>
 
-<div class="row justify-content-between align-content-center mb-5">
-    <div class="col">
+<div class="row gx-2 justify-content-center  mb-5">
+    <div class="col row align-content-center">
         <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined" Label="Mes"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
                        Date="_filters.FechaMes" FixDay="1" OpenTo="OpenTo.Month" />
 
     </div>
 
-    <div class="col">
+    <div class="col row align-content-center">
         <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
                    Label="@(DisplayName.GetDisplayName(_filters, m => m.ServicioId))"
                    For="@(() => _filters.ServicioId)" T="int?" ValueChanged="ServicioIdChanged"
@@ -26,9 +26,9 @@
         </MudSelect>
     </div>
 
-    <div class="col justify-content-center align-content-center">
+    <div class="col row text-center align-content-center p-3">
         <MudButton OnClick="() => GetReporte()" Color="Color.Success" Variant="Variant.Filled"
-                   StartIcon="fa fa-file-excel">Importar a Excel</MudButton>
+                   StartIcon="fa fa-file-excel" Class="">Exportar a Excel</MudButton>
     </div>
 </div>
 
