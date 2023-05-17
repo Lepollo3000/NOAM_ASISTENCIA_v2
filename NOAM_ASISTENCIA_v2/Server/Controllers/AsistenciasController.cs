@@ -4,19 +4,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor.Extensions;
 using Newtonsoft.Json;
-using NOAM_ASISTENCIA_V2.Client.Pages.Intendente.Asistencia;
-using NOAM_ASISTENCIA_V2.Client.Utils;
 using NOAM_ASISTENCIA_V2.Server.Data;
 using NOAM_ASISTENCIA_V2.Server.Models;
 using NOAM_ASISTENCIA_V2.Server.Utils.Paging;
 using NOAM_ASISTENCIA_V2.Shared.Models;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures;
 using NOAM_ASISTENCIA_V2.Shared.RequestFeatures.Asistencia;
-using System.Linq;
 using System.Linq.Dynamic.Core;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace NOAM_ASISTENCIA_V2.Server.Controllers
 {
@@ -84,9 +79,9 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             else
             {
                 DateTime fechaInicial = filters.FechaMes.HasValue
-                    ? filters.FechaMes.Value.Date
+                    ? filters.FechaMes.Value
                     : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-                DateTime fechaFinal = fechaInicial.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+                DateTime fechaFinal = fechaInicial.AddHours(23).AddMinutes(59).AddSeconds(59);
 
                 ApplicationUser? user;
 
@@ -225,57 +220,28 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             SearchParameters parameters, AsistenciaFilterParameters filters, TimeZoneInfo timeZone,
             DateTime fechaInicial, DateTime fechaFinal)
         {
-            //IEnumerable<IEnumerable<AsistenciaReporteExcel>> query;
+            double offsetMinutes = timeZone.BaseUtcOffset.TotalMinutes;
 
-            try
-            {
-                // INTENTAR FILTRAR CON ZONA HORARIA DE IANA
-                IEnumerable<IEnumerable<AsistenciaReporteExcel>> query = await _context.Asistencias
-                    .Include(a => a.IdSucursalNavigation)
-                    .Include(a => a.IdUsuarioNavigation)
-                    .Sort(parameters.OrderBy!)
-                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id) >= fechaInicial)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id) <= fechaFinal)
-                    .GroupBy(a => a.IdUsuario)
-                    .Select(g => g.Select(a => new AsistenciaReporteExcel
-                    {
-                        Usuario = a.IdUsuarioNavigation.UserName,
-                        Nombre = a.IdUsuarioNavigation.Nombre,
-                        Apellido = a.IdUsuarioNavigation.Apellido,
-                        FechaEntrada = a.FechaEntrada,
-                        FechaSalida = a.FechaSalida
-                    }))
-                    .ToListAsync();
+            IEnumerable<IEnumerable<AsistenciaReporteExcel>> query = await _context.Asistencias
+                .Include(a => a.IdSucursalNavigation)
+                .Include(a => a.IdUsuarioNavigation)
+                .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
+                .Where(a => a.FechaEntrada.AddMinutes(offsetMinutes) >= fechaInicial)
+                .Where(a => a.FechaEntrada.AddMinutes(offsetMinutes) <= fechaFinal)
+                .Sort(parameters.OrderBy!)
+                .GroupBy(a => a.IdUsuario)
+                .Select(g => g.Select(a => new AsistenciaReporteExcel
+                {
+                    Servicio = a.IdSucursalNavigation.Descripcion,
+                    Usuario = a.IdUsuarioNavigation.UserName,
+                    Nombre = a.IdUsuarioNavigation.Nombre,
+                    Apellido = a.IdUsuarioNavigation.Apellido,
+                    FechaEntrada = a.FechaEntrada,
+                    FechaSalida = a.FechaSalida
+                }))
+                .ToListAsync();
 
-                return query;
-            }
-            catch (SqlException)
-            {
-                // FILTRAR CON ZONA HORARIA FEA DE WINDOWS
-                TimeZoneInfo.TryConvertIanaIdToWindowsId(timeZone.Id, out string? timeZoneInfo);
-
-                IEnumerable<IEnumerable<AsistenciaReporteExcel>> query = await _context.Asistencias
-                    .Include(a => a.IdSucursalNavigation)
-                    .Include(a => a.IdUsuarioNavigation)
-                    .Sort(parameters.OrderBy!)
-                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZoneInfo!) >= fechaInicial)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZoneInfo!) <= fechaFinal)
-                    .GroupBy(a => a.IdUsuario)
-                    .Select(g => g.Select(a => new AsistenciaReporteExcel
-                    {
-                        Servicio = a.IdSucursalNavigation.Descripcion,
-                        Usuario = a.IdUsuarioNavigation.UserName,
-                        Nombre = a.IdUsuarioNavigation.Nombre,
-                        Apellido = a.IdUsuarioNavigation.Apellido,
-                        FechaEntrada = a.FechaEntrada,
-                        FechaSalida = a.FechaSalida
-                    }))
-                    .ToListAsync();
-
-                return query;
-            }
+            return query;
         }
 
         private async Task<IEnumerable<AsistenciaGeneralDTO>> GetReportesGenerales(
@@ -336,61 +302,31 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             SearchParameters parameters, AsistenciaFilterParameters filters, TimeZoneInfo timeZone,
             DateTime fechaInicial, DateTime fechaFinal, ApplicationUser user)
         {
-            try
-            {
-                IEnumerable<AsistenciaPersonalDTO> query = await _context.Asistencias
-                    .Include(a => a.IdSucursalNavigation)
-                    .Include(a => a.IdUsuarioNavigation)
-                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
-                    .Where(a => a.IdUsuario == user.Id)
-                    .Sort(parameters.OrderBy!)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id) >= fechaInicial)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id) <= fechaFinal)
-                    .Select(a => new AsistenciaPersonalDTO
-                    {
-                        Username = a.IdUsuarioNavigation.UserName,
-                        NombreUsuario = a.IdUsuarioNavigation.Nombre,
-                        ApellidoUsuario = a.IdUsuarioNavigation.Apellido,
-                        NombreSucursal = a.IdSucursalNavigation.Descripcion,
-                        FechaEntrada = EF.Functions.AtTimeZone(a.FechaEntrada, timeZone.Id).DateTime,
-                        FechaSalida = !a.FechaSalida.HasValue ? a.FechaSalida
-                            : EF.Functions.AtTimeZone(a.FechaSalida.Value, timeZone.Id).DateTime,
-                        MinutosLaborados = !a.FechaSalida.HasValue ? 0
-                            : EF.Functions.DateDiffMinute(a.FechaEntrada, a.FechaSalida.Value)
-                    })
-                    .ToListAsync();
+            double offsetMinutes = timeZone.BaseUtcOffset.TotalMinutes;
 
-                return query;
-            }
-            catch (SqlException)
-            {
-                TimeZoneInfo.TryConvertIanaIdToWindowsId(timeZone.Id, out string? windowsTimeZoneId);
+            IEnumerable<AsistenciaPersonalDTO> query = await _context.Asistencias
+                .Include(a => a.IdSucursalNavigation)
+                .Include(a => a.IdUsuarioNavigation)
+                .Where(a => a.IdUsuario == user.Id)
+                .Where(a => !filters.ServicioId.HasValue || a.IdSucursal == filters.ServicioId)
+                .Where(a => a.FechaEntrada.AddMinutes(offsetMinutes) >= fechaInicial)
+                .Where(a => a.FechaEntrada.AddMinutes(offsetMinutes) <= fechaFinal)
+                .Sort(parameters.OrderBy!)
+                .Select(a => new AsistenciaPersonalDTO
+                {
+                    Username = a.IdUsuarioNavigation.UserName,
+                    NombreUsuario = a.IdUsuarioNavigation.Nombre,
+                    ApellidoUsuario = a.IdUsuarioNavigation.Apellido,
+                    NombreServicio = a.IdSucursalNavigation.Descripcion,
+                    FechaEntrada = a.FechaEntrada.AddMinutes(offsetMinutes),
+                    FechaSalida = !a.FechaSalida.HasValue ? a.FechaSalida
+                        : a.FechaSalida.Value.AddMinutes(offsetMinutes),
+                    MinutosLaborados = !a.FechaSalida.HasValue ? 0
+                        : EF.Functions.DateDiffMinute(a.FechaEntrada, a.FechaSalida.Value)
+                })
+                .ToListAsync();
 
-                IEnumerable<AsistenciaPersonalDTO> query = await _context.Asistencias
-                    .Include(a => a.IdSucursalNavigation)
-                    .Include(a => a.IdUsuarioNavigation)
-                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
-                    .Where(a => a.IdUsuario == user.Id)
-                    .Sort(parameters.OrderBy!)
-                    .Where(a => filters.ServicioId.HasValue && a.IdSucursal == filters.ServicioId)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, windowsTimeZoneId!) >= fechaInicial)
-                    .Where(a => EF.Functions.AtTimeZone(a.FechaEntrada, windowsTimeZoneId!) <= fechaFinal)
-                    .Select(a => new AsistenciaPersonalDTO
-                    {
-                        Username = a.IdUsuarioNavigation.UserName,
-                        NombreUsuario = a.IdUsuarioNavigation.Nombre,
-                        ApellidoUsuario = a.IdUsuarioNavigation.Apellido,
-                        NombreSucursal = a.IdSucursalNavigation.Descripcion,
-                        FechaEntrada = EF.Functions.AtTimeZone(a.FechaEntrada, windowsTimeZoneId!).DateTime,
-                        FechaSalida = !a.FechaSalida.HasValue ? a.FechaSalida
-                            : EF.Functions.AtTimeZone(a.FechaSalida.Value, windowsTimeZoneId!).DateTime,
-                        MinutosLaborados = !a.FechaSalida.HasValue ? 0
-                            : EF.Functions.DateDiffMinute(a.FechaEntrada, a.FechaSalida.Value)
-                    })
-                    .ToListAsync();
-
-                return query;
-            }
+            return query;
         }
         #endregion
 

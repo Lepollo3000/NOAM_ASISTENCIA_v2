@@ -10,8 +10,8 @@ public class AsistenciaPersonalDTO
     public string NombreUsuario { get; set; } = null!;
     [Display(Name = "Apellido(s)")]
     public string ApellidoUsuario { get; set; } = null!;
-    [Display(Name = "Sucursal")]
-    public string NombreSucursal { get; set; } = null!;
+    [Display(Name = "Servicio")]
+    public string NombreServicio { get; set; } = null!;
     [Display(Name = "Fecha")]
     public DateTime FechaEntrada { get; set; }
     public DateTime? FechaSalida { get; set; }

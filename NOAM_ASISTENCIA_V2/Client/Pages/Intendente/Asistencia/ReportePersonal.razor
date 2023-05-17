@@ -1,4 +1,4 @@
-﻿@page "/asistencia/reporte/{ServicioId:int?}/{FechaMes:datetime?}"
+﻿@page "/asistencia/reporte/{FechaMes:datetime?}"
 @attribute [Authorize(Roles = "Intendente")]
 
 <PageTitle>Reporte de Asistencia</PageTitle>
@@ -7,25 +7,13 @@
 {
     <h1 class="h3">Reporte de Asistencia para <strong>@_username</strong></h1>
 
-    <div class="row justify-content-between mb-5">
-        <div class="col">
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6 col-lg-4">
             <MudDatePicker AdornmentColor="Color.Secondary" Variant="Variant.Outlined" DateFormat="dddd, dd MMMM yyyy"
                        Label="@(DisplayName.GetDisplayName(_filters, m => m.FechaMes))"
                        For="@(() => _filters.FechaMes)" DateChanged="FechaInicialChanged"
                        Date="_filters.FechaMes" />
 
-        </div>
-
-        <div class="col">
-            <MudSelect Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
-                   Label="@(DisplayName.GetDisplayName(_filters, m => m.ServicioId))"
-                   For="@(() => _filters.ServicioId)" T="int?" ValueChanged="ServicioIdChanged"
-                   Value="_filters.ServicioId">
-                @foreach (ServicioDTO servicio in _servicios)
-                {
-                    <MudSelectItem T="int?" Value="servicio.Id">@servicio.Descripcion</MudSelectItem>
-                }
-            </MudSelect>
         </div>
     </div>
 
@@ -35,7 +23,7 @@
         <HeaderContent>
             <MudTh>
                 <MudTableSortLabel SortLabel="sucursal" T="AsistenciaPersonalDTO">
-                    @(DisplayName.GetDisplayName(_model, m => m.NombreSucursal))
+                    @(DisplayName.GetDisplayName(_model, m => m.NombreServicio))
                 </MudTableSortLabel>
             </MudTh>
 
@@ -60,7 +48,7 @@
 
         <RowTemplate>
             <MudTd>
-                @context.NombreSucursal
+                @context.NombreServicio
             </MudTd>
 
             <MudTd Class="text-center">

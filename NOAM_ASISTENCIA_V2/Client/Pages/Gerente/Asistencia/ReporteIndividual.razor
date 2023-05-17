@@ -51,7 +51,7 @@
 
         <MudTh>
             <MudTableSortLabel SortLabel="sucursal" T="AsistenciaPersonalDTO">
-                @(DisplayName.GetDisplayName(_model, m => m.NombreSucursal))
+                @(DisplayName.GetDisplayName(_model, m => m.NombreServicio))
             </MudTableSortLabel>
         </MudTh>
 
@@ -84,7 +84,7 @@
         </MudTd>
 
         <MudTd>
-            @context.NombreSucursal
+            @context.NombreServicio
         </MudTd>
 
         <MudTd Class="text-center">
