@@ -92,8 +92,8 @@ partial class Create
     {
         var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("turnos", showAllParam)
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("turnos", showAllParam)
         );
 
         if (response.IsSuccessStatusCode)

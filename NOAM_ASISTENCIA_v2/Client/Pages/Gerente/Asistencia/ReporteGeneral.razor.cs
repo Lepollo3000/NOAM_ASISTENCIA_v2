@@ -199,8 +199,8 @@ partial class ReporteGeneral
                 // POR ALGUNA PENDEJA RAZÓN SI NO SE PONE UN DELAY NO SE MUESTRA LA ALERTA
                 await Task.Delay(250);
 
-                using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
-                    "asistencias/reporteasistencia", queryStringParam));
+                using var response = await HttpClient.GetAsync(QueryHelpers
+                    .AddQueryString("asistencias/reporteasistencia", queryStringParam));
 
                 if (response.IsSuccessStatusCode)
                 {

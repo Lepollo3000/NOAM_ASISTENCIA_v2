@@ -107,8 +107,8 @@ partial class ReportePersonal
             ["fechaMes"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty
         };
 
-        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
-            "asistencias", queryStringParam));
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("asistencias", queryStringParam));
 
         if (response.IsSuccessStatusCode)
         {

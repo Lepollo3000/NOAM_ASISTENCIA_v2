@@ -55,8 +55,8 @@ partial class Edit
     {
         var isEditParam = new Dictionary<string, string> { ["isEditing"] = true.ToString() };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString($"users/{Username}", isEditParam)
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString($"users/{Username}", isEditParam)
         );
 
         if (response.IsSuccessStatusCode)
@@ -93,9 +93,8 @@ partial class Edit
     {
         var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("turnos", showAllParam)
-        );
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("turnos", showAllParam));
 
         if (response.IsSuccessStatusCode)
         {

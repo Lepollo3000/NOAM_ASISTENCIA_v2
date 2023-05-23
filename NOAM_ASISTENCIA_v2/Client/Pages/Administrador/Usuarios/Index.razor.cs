@@ -69,9 +69,8 @@ partial class Index
             ["orderBy"] = productParameters.OrderBy ?? ""
         };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("users", queryStringParam)
-        );
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("users", queryStringParam));
 
         if (response.IsSuccessStatusCode)
         {

@@ -76,8 +76,8 @@ partial class ReporteIndividual
     {
         var showAllParam = new Dictionary<string, string> { ["showAll"] = true.ToString() };
 
-        using var response = await HttpClient.GetAsync(QueryHelpers.AddQueryString(
-            "servicios", showAllParam));
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("servicios", showAllParam));
 
         if (response.IsSuccessStatusCode)
         {
@@ -134,12 +134,13 @@ partial class ReporteIndividual
             ["username"] = _filters.Username ?? string.Empty,
             ["servicioId"] = _filters.ServicioId.ToString() ?? string.Empty,
             ["timeZoneId"] = _filters.TimeZoneId ?? string.Empty,
-            ["fechaMes"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty
+            ["fechaMes"] = _filters.FechaMes!.Value.ToString("yyyy-MM-dd") ?? string.Empty,
+
+            ["esReporteIndividual"] = true.ToString()
         };
 
-        using var response = await HttpClient.GetAsync(
-            QueryHelpers.AddQueryString("asistencias", queryStringParam)
-        );
+        using var response = await HttpClient.GetAsync(QueryHelpers
+            .AddQueryString("asistencias", queryStringParam));
 
         if (response.IsSuccessStatusCode)
         {

@@ -33,7 +33,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
         // GET: api/Asistencias
         [HttpGet]
-        public async Task<IActionResult> GetAsistencias([FromQuery] SearchParameters parameters, [FromQuery] AsistenciaFilterParameters filters, bool esReporteGeneral)
+        public async Task<IActionResult> GetAsistencias([FromQuery] SearchParameters parameters, [FromQuery] AsistenciaFilterParameters filters, bool esReporteGeneral, bool esReporteIndividual)
         {
             #region Validaciones
             if (_context.Asistencias == null)
@@ -60,14 +60,10 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
 
             if (esReporteGeneral)
             {
-                DateTime fechaInicial = filters.FechaMes.HasValue
-                    ? new DateTime(filters.FechaMes.Value.Year, filters.FechaMes.Value.Month, 1)
-                    : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-                DateTime fechaFinal = new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
-                        .DaysInMonth(fechaInicial.Year, fechaInicial.Month));
+
 
                 IEnumerable<AsistenciaGeneralDTO> responseList = await GetReportesGenerales(parameters,
-                    filters, timeZone, fechaInicial, fechaFinal);
+                    filters, timeZone/*, fechaInicial, fechaFinal*/);
 
                 var response = PagedList<AsistenciaGeneralDTO>.ToPagedList(responseList,
                         parameters.PageNumber, parameters.PageSize);
@@ -78,11 +74,6 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             }
             else
             {
-                DateTime fechaInicial = filters.FechaMes.HasValue
-                    ? filters.FechaMes.Value
-                    : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-                DateTime fechaFinal = fechaInicial.AddHours(23).AddMinutes(59).AddSeconds(59);
-
                 ApplicationUser? user;
 
                 #region Validaciones
@@ -102,7 +93,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                 #endregion
 
                 IEnumerable<AsistenciaPersonalDTO> responseList = await GetReportesPersonales(parameters,
-                    filters, timeZone, fechaInicial, fechaFinal, user);
+                    filters, timeZone/*, fechaInicial, fechaFinal*/, user, esReporteIndividual);
 
                 var response = PagedList<AsistenciaPersonalDTO>.ToPagedList(responseList,
                         parameters.PageNumber, parameters.PageSize);
@@ -170,6 +161,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
             };
             WorkSheet reporte = documento.GetWorkSheet("Hoja1");
 
+            #region Excel
             reporte.Name = nomenclaturaDelMes;
             reporte.Rows[0].Columns[2].StringValue = queryList.First().First().Servicio;
             reporte.Rows[2].Columns[4].StringValue = nomenclaturaDelMes;
@@ -206,6 +198,7 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
                     }
                 }
             }
+            #endregion
 
             byte[] response = documento.ToBinary();
 
@@ -245,9 +238,15 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
         }
 
         private async Task<IEnumerable<AsistenciaGeneralDTO>> GetReportesGenerales(
-            SearchParameters parameters, AsistenciaFilterParameters filters, TimeZoneInfo timeZone,
-            DateTime fechaInicial, DateTime fechaFinal)
+            SearchParameters parameters, AsistenciaFilterParameters filters, TimeZoneInfo timeZone/*,
+            DateTime fechaInicial, DateTime fechaFinal*/)
         {
+            DateTime fechaInicial = filters.FechaMes.HasValue
+                ? new DateTime(filters.FechaMes.Value.Year, filters.FechaMes.Value.Month, 1)
+                : new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            DateTime fechaFinal = new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
+                .DaysInMonth(fechaInicial.Year, fechaInicial.Month));
+
             try
             {
                 IEnumerable<AsistenciaGeneralDTO> query = await _context.Asistencias
@@ -299,9 +298,16 @@ namespace NOAM_ASISTENCIA_V2.Server.Controllers
         }
 
         private async Task<IEnumerable<AsistenciaPersonalDTO>> GetReportesPersonales(
-            SearchParameters parameters, AsistenciaFilterParameters filters, TimeZoneInfo timeZone,
-            DateTime fechaInicial, DateTime fechaFinal, ApplicationUser user)
+            SearchParameters parameters, AsistenciaFilterParameters filters, TimeZoneInfo timeZone/*,
+            DateTime fechaInicial, DateTime fechaFinal*/, ApplicationUser user, bool esIndividual)
         {
+            DateTime fechaInicial = filters.FechaMes 
+                ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            DateTime fechaFinal = esIndividual
+                ? new DateTime(fechaInicial.Year, fechaInicial.Month, DateTime
+                    .DaysInMonth(fechaInicial.Year, fechaInicial.Month))
+                : fechaInicial.AddHours(23).AddMinutes(59).AddSeconds(59);
+
             double offsetMinutes = timeZone.BaseUtcOffset.TotalMinutes;
 
             IEnumerable<AsistenciaPersonalDTO> query = await _context.Asistencias
