@@ -1,7 +1,34 @@
 ﻿@page "/authentication/{action}"
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-<RemoteAuthenticatorView Action="@Action" />
 
-@code{
+<RemoteAuthenticatorView Action="@Action">
+    <LogInFailed>
+        <p class="alert alert-danger" role="alert">@_strLogInFailed</p>
+    </LogInFailed>
+
+    <LogOut>
+        <p class="alert alert-info" role="alert">@_strLogOut</p>
+    </LogOut>
+
+    <LogOutSucceeded>
+        <p class="alert alert-success" role="alert">@_strLogOutSucceeded</p>
+    </LogOutSucceeded>
+
+    <LoggingIn>
+        <p class="alert alert-info" role="alert">@_strLoggingIn</p>
+    </LoggingIn>
+
+    <CompletingLoggingIn>
+        <p class="alert alert-success" role="alert">@_strCompletingLoggingIn</p>
+    </CompletingLoggingIn>
+</RemoteAuthenticatorView>
+
+@code {
     [Parameter] public string? Action { get; set; }
+
+    private readonly string _strLogInFailed = "Inicio de sesión no exitoso. Favor de contactar a un supervisor.";
+    private readonly string _strLogOut = "Cerrando sesión. Por favor espere...";
+    private readonly string _strLogOutSucceeded = "Cierre de sesión exitoso.";
+    private readonly string _strLoggingIn = "Redirigiendo a pantalla de inicio de sesión. Por favor espere...";
+    private readonly string _strCompletingLoggingIn = "Inicio de sesión exitoso.";
 }

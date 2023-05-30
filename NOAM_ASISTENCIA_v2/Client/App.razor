@@ -1,7 +1,15 @@
-﻿<CascadingAuthenticationState>
+﻿@inject NavigationManager NavManager
+
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <Authorizing>
+                    <p class="alert alert-info" role="alert">
+                        Autorización en proceso. Por favor espere...
+                    </p>
+                </Authorizing>
+
                 <NotAuthorized>
                     @if (context.User.Identity?.IsAuthenticated != true)
                     {
@@ -9,16 +17,22 @@
                     }
                     else
                     {
-                        <p role="alert">You are not authorized to access this resource.</p>
+                        <p role="alert">
+                            No se está autorizado para acceder a este recurso. Inicie sesión con otra cuenta o
+                            contacte a un administrador.
+                        </p>
                     }
                 </NotAuthorized>
             </AuthorizeRouteView>
+
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
+
         <NotFound>
-            <PageTitle>Not found</PageTitle>
+            <PageTitle>No encontrado</PageTitle>
+
             <LayoutView Layout="@typeof(MainLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
+                <p role="alert">Lo sentimos, no encontramos nada en esta dirección.</p>
             </LayoutView>
         </NotFound>
     </Router>

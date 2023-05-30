@@ -1,9 +1,14 @@
 ﻿@page "/"
+@attribute [Authorize]
 
 <PageTitle>Inicio</PageTitle>
 
 <AuthorizeView Roles="Administrador">
     <IndexAdministrador />
+</AuthorizeView>
+
+<AuthorizeView Roles="Gerente">
+    <IndexGerente />
 </AuthorizeView>
 
 @code {
