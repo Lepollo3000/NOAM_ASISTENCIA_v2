@@ -11,6 +11,10 @@
     <IndexGerente />
 </AuthorizeView>
 
+<AuthorizeView Roles="Intendente">
+    <IndexIntendente />
+</AuthorizeView>
+
 @code {
     [CascadingParameter] public MainLayout Layout { get; set; } = null!;
 
